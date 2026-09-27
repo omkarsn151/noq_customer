@@ -10,29 +10,15 @@ import 'package:noq/features/bookings/bloc/bookings_state.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
 import 'package:noq/features/bookings/presentation/widgets/booking_tab_pills.dart';
 import 'package:noq/features/bookings/presentation/widgets/bookings_tile.dart';
-import 'package:noq/features/bookings/repository/bookings_repository.dart';
 
-class BookingsScreen extends StatelessWidget {
+class BookingsScreen extends StatefulWidget {
   const BookingsScreen({super.key});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<BookingsBloc>(
-      create: (_) => BookingsBloc(BookingsRepository())
-        ..add(const BookingsRequested(tab: BookingTab.upcoming)),
-      child: const _BookingsView(),
-    );
-  }
+  State<BookingsScreen> createState() => _BookingsScreenState();
 }
 
-class _BookingsView extends StatefulWidget {
-  const _BookingsView();
-
-  @override
-  State<_BookingsView> createState() => _BookingsViewState();
-}
-
-class _BookingsViewState extends State<_BookingsView> {
+class _BookingsScreenState extends State<BookingsScreen> {
   /// How close to the bottom of the list the next page starts loading.
   static const double _loadMoreThreshold = 300;
 
@@ -42,6 +28,9 @@ class _BookingsViewState extends State<_BookingsView> {
   void initState() {
     super.initState();
     _scrollController.addListener(_onScroll);
+    context.read<BookingsBloc>().add(
+      const BookingsRequested(tab: BookingTab.upcoming),
+    );
   }
 
   @override

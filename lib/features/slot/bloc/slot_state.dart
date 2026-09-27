@@ -1,4 +1,5 @@
 import 'package:equatable/equatable.dart';
+import 'package:noq/features/bookings/data/booking_created_model.dart';
 import 'package:noq/features/slot/data/slot_math.dart';
 import 'package:noq/features/slot/data/slot_model.dart';
 
@@ -46,6 +47,22 @@ class SlotLoaded extends SlotState {
   /// Null means "Anyone".
   final String? selectedStaffId;
 
+  /// True while the create-booking call is in flight; Proceed is disabled and
+  /// shows a spinner.
+  final bool isSubmitting;
+
+  /// Message for a failed create-booking call, shown as a snackbar.
+  final String? submitError;
+
+  /// True when [submitError] means the cart itself is no longer bookable here
+  /// (emptied, or its shop is no longer public). Nothing on this screen can
+  /// recover from that, so the customer is sent back to the cart.
+  final bool isCartInvalid;
+
+  /// Set once the booking exists — the screen listens for this and navigates to
+  /// the confirmation. The cart is empty by then, so there is no going back.
+  final BookingCreatedModel? createdBooking;
+
   const SlotLoaded({
     required this.model,
     required this.selectedDate,
@@ -54,6 +71,10 @@ class SlotLoaded extends SlotState {
     this.timesError,
     this.selectedStart,
     this.selectedStaffId,
+    this.isSubmitting = false,
+    this.submitError,
+    this.isCartInvalid = false,
+    this.createdBooking,
   });
 
   SlotLoaded copyWith({
@@ -64,6 +85,10 @@ class SlotLoaded extends SlotState {
     Object? timesError = _unset,
     Object? selectedStart = _unset,
     Object? selectedStaffId = _unset,
+    bool? isSubmitting,
+    Object? submitError = _unset,
+    bool? isCartInvalid,
+    Object? createdBooking = _unset,
   }) {
     return SlotLoaded(
       model: model ?? this.model,
@@ -79,6 +104,14 @@ class SlotLoaded extends SlotState {
       selectedStaffId: identical(selectedStaffId, _unset)
           ? this.selectedStaffId
           : selectedStaffId as String?,
+      isSubmitting: isSubmitting ?? this.isSubmitting,
+      submitError: identical(submitError, _unset)
+          ? this.submitError
+          : submitError as String?,
+      isCartInvalid: isCartInvalid ?? this.isCartInvalid,
+      createdBooking: identical(createdBooking, _unset)
+          ? this.createdBooking
+          : createdBooking as BookingCreatedModel?,
     );
   }
 
@@ -114,7 +147,8 @@ class SlotLoaded extends SlotState {
       .map((k) => model.times[k].start)
       .toList();
 
-  /// `end` of the last chip in the run — it already includes the buffer.
+  /// `end` of the last chip in the run. A chip's `end` is already
+  /// `start + block + buffer`, so never add the buffer again on top of this.
   DateTime? get selectedEnd {
     final idx = selectedIndexes;
     if (idx.isEmpty) return null;
@@ -130,6 +164,10 @@ class SlotLoaded extends SlotState {
     timesError,
     selectedStart,
     selectedStaffId,
+    isSubmitting,
+    submitError,
+    isCartInvalid,
+    createdBooking,
   ];
 }
 

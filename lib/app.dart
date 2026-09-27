@@ -9,12 +9,18 @@ import 'package:noq/features/auth/request_otp/bloc/request_otp_bloc.dart';
 import 'package:noq/features/auth/request_otp/repository/request_otp_repository.dart';
 import 'package:noq/features/auth/verify_otp/bloc/verify_otp_bloc.dart';
 import 'package:noq/features/auth/verify_otp/reopsitory/verify_otp_repository.dart';
+import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
+import 'package:noq/features/bookings/repository/bookings_repository.dart';
 import 'package:noq/features/business/bloc/business_bloc.dart';
 import 'package:noq/features/business/bloc/business_event.dart';
 import 'package:noq/features/business/respository/business_repository.dart';
+import 'package:noq/features/business_details/bloc/business_details_bloc.dart';
+import 'package:noq/features/business_details/repository/business_details_repository.dart';
 import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/repository/cart_repository.dart';
+import 'package:noq/features/slot/bloc/slot_bloc.dart';
+import 'package:noq/features/slot/repository/slot_repository.dart';
 
 class MyApp extends StatelessWidget {
   const MyApp({super.key});
@@ -40,6 +46,13 @@ class MyApp extends StatelessWidget {
           create: (_) => AddToCartBloc(CartRepository()),
         ),
         BlocProvider<CartBloc>(create: (_) => CartBloc(CartRepository())),
+        BlocProvider<BookingsBloc>(
+          create: (_) => BookingsBloc(BookingsRepository()),
+        ),
+        BlocProvider<BusinessDetailsBloc>(
+          create: (_) => BusinessDetailsBloc(BusinessDetailsRepository()),
+        ),
+        BlocProvider<SlotBloc>(create: (_) => SlotBloc(SlotRepository())),
       ],
       child: Sizer(
         builder: (context, orientation, deviceType) {

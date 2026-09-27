@@ -51,3 +51,9 @@ class SlotStaffSelected extends SlotEvent {
   @override
   List<Object?> get props => [staffId];
 }
+
+/// The customer tapped Proceed to Checkout. The selected run and staff are read
+/// off the state, so this carries no payload.
+class SlotBookingSubmitted extends SlotEvent {
+  const SlotBookingSubmitted();
+}

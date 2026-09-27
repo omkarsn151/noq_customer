@@ -41,4 +41,6 @@ class ApiEndpoints {
 
   //====================Bookings====================
   static const String getBookingsList = "v1/customer/bookings";
+
+  static const String createBooking = "v1/customer/bookings";
 }

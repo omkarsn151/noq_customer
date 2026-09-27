@@ -2,37 +2,69 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_button.dart';
+import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
-import 'package:noq/features/dummy/payment.dart';
+import 'package:noq/features/bookings/presentation/screens/booking_success_screen.dart';
+import 'package:noq/features/cart/bloc/cart_bloc.dart';
+import 'package:noq/features/cart/bloc/cart_event.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
 import 'package:noq/features/slot/bloc/slot_event.dart';
 import 'package:noq/features/slot/bloc/slot_state.dart';
 import 'package:noq/features/slot/data/slot_math.dart';
 import 'package:noq/features/slot/data/slot_model.dart';
-import 'package:noq/features/slot/repository/slot_repository.dart';
 import 'package:sizer/sizer.dart';
 
-class SlotScreen extends StatelessWidget {
+class SlotScreen extends StatefulWidget {
   final String businessId;
 
   const SlotScreen({super.key, required this.businessId});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<SlotBloc>(
-      create: (_) => SlotBloc(SlotRepository())..add(SlotRequested(businessId)),
-      child: const _SlotView(),
-    );
-  }
+  State<SlotScreen> createState() => _SlotScreenState();
 }
 
-class _SlotView extends StatelessWidget {
-  const _SlotView();
+class _SlotScreenState extends State<SlotScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<SlotBloc>().add(SlotRequested(widget.businessId));
+  }
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SlotBloc, SlotState>(
+    return BlocConsumer<SlotBloc, SlotState>(
+      listenWhen: (previous, current) {
+        if (previous is! SlotLoaded || current is! SlotLoaded) return false;
+        return previous.submitError != current.submitError ||
+            previous.createdBooking != current.createdBooking;
+      },
+      listener: (context, state) {
+        if (state is! SlotLoaded) return;
+
+        final booking = state.createdBooking;
+        if (booking != null) {
+          // The create call consumed the cart, so pull the empty one to clear
+          // the Cart tab and its sticky bar.
+          context.read<CartBloc>().add(CartItemsRequested());
+          // Replace rather than push: going back to a slot grid for a cart that
+          // no longer exists would only produce CART_EMPTY.
+          Navigator.of(context).pushReplacement(
+            MaterialPageRoute(
+              builder: (_) => BookingSuccessScreen(booking: booking),
+            ),
+          );
+          return;
+        }
+
+        final error = state.submitError;
+        if (error != null) {
+          AppSnackbar.error(context, error);
+          // Nothing here can recover a cart that emptied or changed shop; the
+          // bloc has already reloaded the grid for every other failure.
+          if (state.isCartInvalid) Navigator.of(context).pop();
+        }
+      },
       builder: (context, state) {
         final businessName = state is SlotLoaded
             ? state.model.business.name
@@ -310,7 +342,7 @@ class _TimeGrid extends StatelessWidget {
         } else if (!isTappable) {
           // `full`, `past`, end-of-day and pre-lunch-gap chips all land here
           // once the cart needs a run.
-          background = AppColors.borderLight.withValues(alpha: 0.3);
+          background = AppColors.borderLight;
           borderColor = AppColors.borderLight;
           labelColor = AppColors.textSecondary;
         } else {
@@ -504,15 +536,13 @@ class _SlotFooter extends StatelessWidget {
           height: 5.h,
           child: AppButton(
             label: 'Proceed to Checkout',
+            // isLoading also nulls onPressed, so a second tap cannot book twice
+            // while the create call is in flight.
+            isLoading: state.isSubmitting,
             onPressed: state.selectedStarts.length == state.requiredSlots
-                ? () {
-                    // TODO(booking API): POST state.selectedStarts as UTC
-                    // ISO-8601, in order; the first is the start of the visit.
-                    Navigator.push(
-                      context,
-                      MaterialPageRoute(builder: (_) => Payment()),
-                    );
-                  }
+                ? () => context.read<SlotBloc>().add(
+                    const SlotBookingSubmitted(),
+                  )
                 : null,
             style: ElevatedButton.styleFrom(
               textStyle: textTheme.bodySmall!.copyWith(

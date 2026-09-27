@@ -9,30 +9,29 @@ import 'package:noq/features/business_details/bloc/business_details_bloc.dart';
 import 'package:noq/features/business_details/bloc/business_details_event.dart';
 import 'package:noq/features/business_details/bloc/business_details_state.dart';
 import 'package:noq/features/business_details/data/business_details_model.dart';
-import 'package:noq/features/business_details/repository/business_details_repository.dart';
 import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
 import 'package:noq/features/cart/bloc/add_to_cart_event.dart';
 import 'package:noq/features/cart/bloc/add_to_cart_state.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
 
-class BusinessDetailsScreen extends StatelessWidget {
+class BusinessDetailsScreen extends StatefulWidget {
   final String businessId;
 
   const BusinessDetailsScreen({super.key, required this.businessId});
 
   @override
-  Widget build(BuildContext context) {
-    return BlocProvider<BusinessDetailsBloc>(
-      create: (_) => BusinessDetailsBloc(BusinessDetailsRepository())
-        ..add(BusinessDetailsRequested(businessId)),
-      child: const _BusinessDetailsView(),
-    );
-  }
+  State<BusinessDetailsScreen> createState() => _BusinessDetailsScreenState();
 }
 
-class _BusinessDetailsView extends StatelessWidget {
-  const _BusinessDetailsView();
+class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
+  @override
+  void initState() {
+    super.initState();
+    context.read<BusinessDetailsBloc>().add(
+      BusinessDetailsRequested(widget.businessId),
+    );
+  }
 
   @override
   Widget build(BuildContext context) {

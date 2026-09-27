@@ -41,11 +41,13 @@ class BookingInfo {
   /// the widget layer rather than parsed into an enum here.
   final String status;
   final String tab;
+  final String? verificationCode;
 
   const BookingInfo({
     required this.id,
     required this.status,
     required this.tab,
+    this.verificationCode,
   });
 
   factory BookingInfo.fromJson(Map<String, dynamic> json) {
@@ -53,6 +55,7 @@ class BookingInfo {
       id: json['id'] as String? ?? '',
       status: json['status'] as String? ?? '',
       tab: json['tab'] as String? ?? '',
+      verificationCode: json['verification_code'] as String?,
     );
   }
 }

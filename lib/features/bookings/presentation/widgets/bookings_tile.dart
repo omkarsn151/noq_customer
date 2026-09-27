@@ -72,6 +72,10 @@ class BookingsTile extends StatelessWidget {
                         ),
                       ),
                     ],
+                    Text('Code: ${booking.booking.verificationCode ?? '--'}',
+                        style: textTheme.bodySmall?.copyWith(
+                          color: AppColors.textSecondary,
+                        )),
                   ],
                 ),
               ),

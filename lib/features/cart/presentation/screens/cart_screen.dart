@@ -10,6 +10,7 @@ import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
 import 'package:noq/features/cart/bloc/cart_state.dart';
 import 'package:noq/features/cart/data/cart_model.dart';
+import 'package:noq/features/promo/presentation/widgets/promo_code_bottom_sheet.dart';
 import 'package:noq/features/slot/presentation/screens/slot_screen.dart';
 
 class CartScreen extends StatefulWidget {
@@ -93,6 +94,7 @@ class _CartContent extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final summary = cart.paymentSummary;
+    final promo = cart.promo;
 
     return Column(
       children: [
@@ -131,8 +133,15 @@ class _CartContent extends StatelessWidget {
                   ),
                   SizedBox(height: 1.5.h),
                   _SummaryRow(
-                    label: 'Discount',
-                    value: '₹${summary.discount}',
+                    // The code is worth naming here: the summary is the only
+                    // place the customer sees what the discount came from.
+                    label: promo == null
+                        ? 'Discount'
+                        : 'Discount (${promo.code})',
+                    value: summary.hasDiscount
+                        ? '-₹${summary.discount}'
+                        : '₹${summary.discount}',
+                    valueColor: summary.hasDiscount ? AppColors.success : null,
                     textTheme: textTheme,
                   ),
                   SizedBox(height: 1.5.h),
@@ -159,6 +168,36 @@ class _CartContent extends StatelessWidget {
                   SizedBox(height: 2.h),
                 ],
               ),
+            ),
+          ),
+        ),
+        InkWell(
+          borderRadius: BorderRadius.circular(12),
+          onTap: () => PromoCodeBottomSheet.show(context),
+          child: Container(
+            width: double.infinity,
+            margin: EdgeInsets.symmetric(horizontal: 5.w),
+            padding: EdgeInsets.symmetric(horizontal: 5.w, vertical: 1.5.h),
+            decoration: BoxDecoration(
+              color: AppColors.primaryLight,
+              borderRadius: BorderRadius.all(Radius.circular(12)),
+            ),
+            child: Row(
+              children: [
+                Text(
+                  'Apply Promo',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w900,
+                  ),
+                ),
+                const Spacer(),
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20.sp,
+                  color: AppColors.primary,
+                ),
+              ],
             ),
           ),
         ),
@@ -324,11 +363,15 @@ class _SummaryRow extends StatelessWidget {
   final TextTheme textTheme;
   final bool isBold;
 
+  /// Overrides the default value colour; used to paint a live discount green.
+  final Color? valueColor;
+
   const _SummaryRow({
     required this.label,
     required this.value,
     required this.textTheme,
     this.isBold = false,
+    this.valueColor,
   });
 
   @override
@@ -347,7 +390,7 @@ class _SummaryRow extends StatelessWidget {
           value,
           style: textTheme.bodyMedium?.copyWith(
             fontWeight: isBold ? FontWeight.w700 : FontWeight.w600,
-            color: AppColors.textPrimary,
+            color: valueColor ?? AppColors.textPrimary,
           ),
         ),
       ],

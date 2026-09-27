@@ -36,10 +36,15 @@ class AddToCartBloc extends Bloc<AddToCartEvent, AddToCartState> {
       final message = await _repository.removeCartItem(event.cartItemId);
       emit(RemoveFromCartSuccess(serviceId: event.serviceId, message: message));
     } on ApiException catch (e) {
-      emit(RemoveFromCartFailure(serviceId: event.serviceId, message: e.message));
+      emit(
+        RemoveFromCartFailure(serviceId: event.serviceId, message: e.message),
+      );
     } catch (e) {
       emit(
-        RemoveFromCartFailure(serviceId: event.serviceId, message: e.toString()),
+        RemoveFromCartFailure(
+          serviceId: event.serviceId,
+          message: e.toString(),
+        ),
       );
     }
   }

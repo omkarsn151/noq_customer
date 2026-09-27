@@ -19,6 +19,8 @@ import 'package:noq/features/business_details/repository/business_details_reposi
 import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/repository/cart_repository.dart';
+import 'package:noq/features/promo/bloc/promo_bloc.dart';
+import 'package:noq/features/promo/repository/promo_repository.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
 import 'package:noq/features/slot/repository/slot_repository.dart';
 
@@ -53,6 +55,7 @@ class MyApp extends StatelessWidget {
           create: (_) => BusinessDetailsBloc(BusinessDetailsRepository()),
         ),
         BlocProvider<SlotBloc>(create: (_) => SlotBloc(SlotRepository())),
+        BlocProvider<PromoBloc>(create: (_) => PromoBloc(PromoRepository())),
       ],
       child: Sizer(
         builder: (context, orientation, deviceType) {

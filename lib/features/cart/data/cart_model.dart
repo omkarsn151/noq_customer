@@ -5,9 +5,9 @@ class CartBusiness {
   const CartBusiness({required this.id, required this.name});
 
   factory CartBusiness.fromJson(Map<String, dynamic> json) => CartBusiness(
-        id: json['id'] as String? ?? '',
-        name: json['name'] as String? ?? '',
-      );
+    id: json['id'] as String? ?? '',
+    name: json['name'] as String? ?? '',
+  );
 }
 
 class CartInfo {
@@ -17,11 +17,11 @@ class CartInfo {
   const CartInfo({required this.id, required this.business});
 
   factory CartInfo.fromJson(Map<String, dynamic> json) => CartInfo(
-        id: json['id'] as String? ?? '',
-        business: CartBusiness.fromJson(
-          json['business'] as Map<String, dynamic>? ?? {},
-        ),
-      );
+    id: json['id'] as String? ?? '',
+    business: CartBusiness.fromJson(
+      json['business'] as Map<String, dynamic>? ?? {},
+    ),
+  );
 }
 
 class CartItemService {
@@ -67,13 +67,39 @@ class CartItemModel {
   });
 
   factory CartItemModel.fromJson(Map<String, dynamic> json) => CartItemModel(
+    id: json['id'] as String? ?? '',
+    service: CartItemService.fromJson(
+      json['service'] as Map<String, dynamic>? ?? {},
+    ),
+    pricing: CartItemPricing.fromJson(
+      json['pricing'] as Map<String, dynamic>? ?? {},
+    ),
+  );
+}
+
+/// The code currently applied on this checkout. Returned by GET /customer/cart
+/// and by the apply / remove acks.
+class SelectedPromoModel {
+  final String id;
+  final String code;
+  final String title;
+
+  /// How much this code takes off the current subtotal.
+  final String estimatedSavings;
+
+  const SelectedPromoModel({
+    required this.id,
+    required this.code,
+    required this.title,
+    required this.estimatedSavings,
+  });
+
+  factory SelectedPromoModel.fromJson(Map<String, dynamic> json) =>
+      SelectedPromoModel(
         id: json['id'] as String? ?? '',
-        service: CartItemService.fromJson(
-          json['service'] as Map<String, dynamic>? ?? {},
-        ),
-        pricing: CartItemPricing.fromJson(
-          json['pricing'] as Map<String, dynamic>? ?? {},
-        ),
+        code: json['code'] as String? ?? '',
+        title: json['title'] as String? ?? '',
+        estimatedSavings: json['estimated_savings'] as String? ?? '0',
       );
 }
 
@@ -95,33 +121,46 @@ class PaymentSummary {
   });
 
   factory PaymentSummary.fromJson(Map<String, dynamic> json) => PaymentSummary(
-        servicesCount: (json['services_count'] as num? ?? 0).toInt(),
-        subtotal: json['subtotal'] as String? ?? '0',
-        discount: json['discount'] as String? ?? '0',
-        taxes: json['taxes'] as String? ?? '0',
-        platformFee: json['platform_fee'] as String? ?? '0',
-        totalPayable: json['total_payable'] as String? ?? '0',
-      );
+    servicesCount: (json['services_count'] as num? ?? 0).toInt(),
+    subtotal: json['subtotal'] as String? ?? '0',
+    discount: json['discount'] as String? ?? '0',
+    taxes: json['taxes'] as String? ?? '0',
+    platformFee: json['platform_fee'] as String? ?? '0',
+    totalPayable: json['total_payable'] as String? ?? '0',
+  );
+
+  /// Money is a decimal string on the wire, so '0.00' has to be compared
+  /// numerically rather than against a literal.
+  bool get hasDiscount => (double.tryParse(discount) ?? 0) > 0;
 }
 
 class CartModel {
   final CartInfo cart;
   final List<CartItemModel> items;
+
+  /// Null when no code is applied, or when the applied one is no longer usable.
+  final SelectedPromoModel? promo;
+
   final PaymentSummary paymentSummary;
 
   const CartModel({
     required this.cart,
     required this.items,
+    required this.promo,
     required this.paymentSummary,
   });
 
-  factory CartModel.fromJson(Map<String, dynamic> json) => CartModel(
-        cart: CartInfo.fromJson(json['cart'] as Map<String, dynamic>? ?? {}),
-        items: (json['items'] as List<dynamic>? ?? [])
-            .map((e) => CartItemModel.fromJson(e as Map<String, dynamic>))
-            .toList(),
-        paymentSummary: PaymentSummary.fromJson(
-          json['payment_summary'] as Map<String, dynamic>? ?? {},
-        ),
-      );
+  factory CartModel.fromJson(Map<String, dynamic> json) {
+    final promo = json['promo'] as Map<String, dynamic>?;
+    return CartModel(
+      cart: CartInfo.fromJson(json['cart'] as Map<String, dynamic>? ?? {}),
+      items: (json['items'] as List<dynamic>? ?? [])
+          .map((e) => CartItemModel.fromJson(e as Map<String, dynamic>))
+          .toList(),
+      promo: promo == null ? null : SelectedPromoModel.fromJson(promo),
+      paymentSummary: PaymentSummary.fromJson(
+        json['payment_summary'] as Map<String, dynamic>? ?? {},
+      ),
+    );
+  }
 }

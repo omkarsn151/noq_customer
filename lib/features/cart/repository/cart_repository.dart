@@ -5,7 +5,8 @@ import 'package:noq/features/cart/data/cart_model.dart';
 class CartRepository {
   final DioClient _dioClient;
 
-  CartRepository({DioClient? dioClient}) : _dioClient = dioClient ?? DioClient();
+  CartRepository({DioClient? dioClient})
+    : _dioClient = dioClient ?? DioClient();
 
   Future<String> addToCart(String serviceId) async {
     final response = await _dioClient.post(

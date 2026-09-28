@@ -12,5 +12,13 @@ class AppAssets {
 
   //dummy
   static const String businessThumbnail= "assets/dummy/business_thumbnail.png";
+  static const String businessThumbnail2 = "assets/dummy/business_thumbnail2.png";
   static const String serviceThumbnail = "assets/dummy/service_thumbnail.png";
+  static const String category1 = "assets/dummy/category1.jpg";
+  static const String category2 = "assets/dummy/category2.jpg";
+  static const String category3 = "assets/dummy/category3.jpg";
+  static const String category4 = "assets/dummy/category4.jpg";
+  static const String specialOffer1 = "assets/dummy/special_offer1.png";
+  static const String specialOffer2 = "assets/dummy/special_offer2.jpg";
+  static const String upNext = "assets/dummy/up_next.jpg";
 }

@@ -44,7 +44,7 @@ class BookingSuccessScreen extends StatelessWidget {
               ),
               SizedBox(height: 1.h),
               TextButton(
-                onPressed: () => context.go('/dashboard'),
+                onPressed: () => context.go('/home'),
                 child: const Text('Done'),
               ),
             ],

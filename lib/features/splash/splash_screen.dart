@@ -33,7 +33,7 @@ class _SplashScreenState extends State<SplashScreen> {
       return;
     }
 
-    context.go('/dashboard');
+    context.go('/home');
 
   }
 

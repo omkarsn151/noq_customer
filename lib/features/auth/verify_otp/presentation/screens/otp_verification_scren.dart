@@ -95,7 +95,7 @@ class _OtpVerificationScrenState extends State<OtpVerificationScren> {
                 if (!state.isProfileComplete) {
                   context.go('/register');
                 } else {
-                  context.go('/dashboard');
+                  context.go('/home');
                 }
               } else if (state is VerifyOtpFailure) {
                 AppSnackbar.error(context, state.message);

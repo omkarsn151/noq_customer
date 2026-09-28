@@ -66,7 +66,7 @@ class _RegisterScreenState extends State<RegisterScreen> {
         body: BlocListener<RegisterBloc, RegisterState>(
           listener: (context, state) {
             if (state is RegisterSuccess) {
-              context.go('/dashboard');
+              context.go('/home');
             } else if (state is RegisterFailure) {
               AppSnackbar.error(context, state.message);
             }

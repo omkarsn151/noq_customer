@@ -42,12 +42,12 @@ class MainScreen extends StatelessWidget {
 
         destinations: const [
           NavigationDestination(
-            icon: Icon(Icons.space_dashboard_outlined, color: AppColors.border),
+            icon: Icon(Icons.home_outlined, color: AppColors.border),
             selectedIcon: Icon(
-              Icons.space_dashboard_rounded,
+              Icons.home_rounded,
               color: AppColors.primary,
             ),
-            label: 'Dashboard',
+            label: 'Home',
           ),
           NavigationDestination(
             icon: Icon(Icons.calendar_month_outlined, color: AppColors.border),

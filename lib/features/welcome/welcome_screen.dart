@@ -44,7 +44,6 @@ class WelcomeScreen extends StatelessWidget {
                     child: AppButton(
                       label: 'Get Started',
                       onPressed: () => context.go('/login'),
-                      // onPressed: () => context.go('/dashboard'),
                       style: ElevatedButton.styleFrom(
                         backgroundColor: AppColors.pink,
                         foregroundColor: AppColors.primary,

@@ -7,7 +7,7 @@ class AppTextTheme {
 
   static TextTheme appTextTheme = TextTheme(
     displayLarge: TextStyle(
-      fontSize: 30.sp,
+      fontSize: 20.sp,
       fontWeight: FontWeight.w900,
       color: AppColors.textPrimary,
     ),

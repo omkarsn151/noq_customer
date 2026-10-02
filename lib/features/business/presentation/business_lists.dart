@@ -76,7 +76,7 @@ class _BusinessListTile extends StatelessWidget {
       borderRadius: BorderRadius.circular(16.sp),
       child: InkWell(
         borderRadius: BorderRadius.circular(16.sp),
-        onTap: () => context.push('/business/${business.id}'),
+        onTap: () => context.push('/business-details'),
         child: Container(
           padding: EdgeInsets.all(2.5.w),
           decoration: BoxDecoration(

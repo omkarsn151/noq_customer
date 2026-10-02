@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
@@ -39,7 +40,7 @@ class BusinessCardWidget extends StatelessWidget {
 
     return InkWell(
       borderRadius: BorderRadius.circular(radius),
-      onTap: onTap,
+      onTap: onTap ?? () => context.push('/business-details'),
       child: Container(
         decoration: BoxDecoration(
           color: AppColors.background,

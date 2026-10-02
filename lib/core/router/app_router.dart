@@ -12,6 +12,7 @@ import 'package:noq/features/home/presentation/screens/home_screen.dart';
 import 'package:noq/features/main_screen/main_screen.dart';
 import 'package:noq/features/privacy/privacy_policy_screen.dart';
 import 'package:noq/features/profile/profile_screen.dart';
+import 'package:noq/features/service/presentation/screens/service_details_screen.dart';
 import 'package:noq/features/splash/splash_screen.dart';
 import 'package:noq/features/tnc/tnc_screen.dart';
 import 'package:noq/features/welcome/welcome_screen.dart';
@@ -51,6 +52,11 @@ class AppRouter {
       GoRoute(
         path: '/business-details',
         builder: (context, state) => const BusinessDetailsScreen(),
+      ),
+
+      GoRoute(
+        path: '/service-details',
+        builder: (context, state) => const ServiceDetailsScreen(),
       ),
 
       GoRoute(

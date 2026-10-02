@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
@@ -88,58 +89,61 @@ class _ServiceTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
 
-    return Row(
-      crossAxisAlignment: CrossAxisAlignment.start,
-      children: [
-        ClipRRect(
-          borderRadius: BorderRadius.circular(12.sp),
-          child: Image.asset(
-            AppAssets.serviceThumbnail,
-            width: 18.w,
-            height: 25.w,
-            fit: BoxFit.cover,
+    return InkWell(
+      onTap: () => context.push('/service-details'),
+      child: Row(
+        crossAxisAlignment: CrossAxisAlignment.start,
+        children: [
+          ClipRRect(
+            borderRadius: BorderRadius.circular(12.sp),
+            child: Image.asset(
+              AppAssets.serviceThumbnail,
+              width: 18.w,
+              height: 25.w,
+              fit: BoxFit.cover,
+            ),
           ),
-        ),
-        SizedBox(width: 3.w),
-        Expanded(
-          child: Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              Text(service.name, style: textTheme.bodyLarge),
-              SizedBox(height: 0.4.h),
-              Text(
-                service.description,
-                style: textTheme.bodySmall?.copyWith(
-                  color: AppColors.textSecondary,
-                ),
-              ),
-              SizedBox(height: 0.5.h),
-              Row(
-                children: [
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 2.w,
-                      vertical: 0.4.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.primaryLight,
-                      borderRadius: BorderRadius.circular(12.sp),
-                    ),
-                    child: Text(
-                      '${service.durationMinutes} min',
-                      style: textTheme.bodySmall,
-                    ),
+          SizedBox(width: 3.w),
+          Expanded(
+            child: Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                Text(service.name, style: textTheme.bodyLarge),
+                SizedBox(height: 0.4.h),
+                Text(
+                  service.description,
+                  style: textTheme.bodySmall?.copyWith(
+                    color: AppColors.textSecondary,
                   ),
-                  const SizedBox(width: 10),
-                  const _AddToCartButton(),
-                ],
-              ),
-            ],
+                ),
+                SizedBox(height: 0.5.h),
+                Row(
+                  children: [
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 2.w,
+                        vertical: 0.4.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.primaryLight,
+                        borderRadius: BorderRadius.circular(12.sp),
+                      ),
+                      child: Text(
+                        '${service.durationMinutes} min',
+                        style: textTheme.bodySmall,
+                      ),
+                    ),
+                    const SizedBox(width: 10),
+                    const _AddToCartButton(),
+                  ],
+                ),
+              ],
+            ),
           ),
-        ),
-        SizedBox(width: 2.w),
-        Text('₹${service.price}', style: textTheme.bodyLarge),
-      ],
+          SizedBox(width: 2.w),
+          Text('₹${service.price}', style: textTheme.bodyLarge),
+        ],
+      ),
     );
   }
 }

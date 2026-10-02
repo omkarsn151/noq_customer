@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noq/core/common/app_search_field.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
@@ -95,8 +96,8 @@ class HomeAppBar extends StatelessWidget {
                     Expanded(
                       child: AppSearchField(
                         hintText: 'Search clinics, barbers, DMV...',
-                        onChanged: (value) {},
-                        onClear: () {},
+                        readOnly: true,
+                        onTap: () => context.push('/search'),
                       ),
                     ),
                     SizedBox(width: 1.5.w),

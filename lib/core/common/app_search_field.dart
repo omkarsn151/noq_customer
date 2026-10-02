@@ -7,6 +7,8 @@ class AppSearchField extends StatelessWidget {
   final String? hintText;
   final ValueChanged<String>? onChanged;
   final VoidCallback? onClear;
+  final VoidCallback? onTap;
+  final bool readOnly;
 
   const AppSearchField({
     super.key,
@@ -14,6 +16,8 @@ class AppSearchField extends StatelessWidget {
     this.hintText,
     this.onChanged,
     this.onClear,
+    this.onTap,
+    this.readOnly = false,
   });
 
   @override
@@ -27,6 +31,8 @@ class AppSearchField extends StatelessWidget {
     return TextField(
       controller: controller,
       onChanged: onChanged,
+      onTap: onTap,
+      readOnly: readOnly,
       style: TextStyle(fontSize: 14.sp, color: AppColors.textPrimary),
       decoration: InputDecoration(
         isDense: true,

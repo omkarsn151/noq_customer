@@ -16,6 +16,9 @@ class AppColors {
   //background
   static const Color background = Color(0xFFFFFFFF);
 
+  //searchScreenBackground
+  static const Color searchScreenBackground = Color(0xFFF5F5F5);
+
   //error
   static const Color error = Color(0XFFFF0000);
 

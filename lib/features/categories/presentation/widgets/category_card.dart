@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
@@ -56,7 +57,10 @@ class CategoryGrid extends StatelessWidget {
         mainAxisSpacing: 3.w,
         childAspectRatio: 1.8,
       ),
-      itemBuilder: (context, index) => CategoryCard(item: items[index]),
+      itemBuilder: (context, index) => GestureDetector(
+        onTap: () => context.push('/businesses', extra: items[index].title),
+        child: CategoryCard(item: items[index]),
+      ),
     );
   }
 }

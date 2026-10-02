@@ -35,13 +35,13 @@ class AppColors {
   static const Color textPrimary = Color(0XFF0F172A);
 
   //textSecondary
-  static const Color textSecondary = Color(0xFF3C3C3C);
+  static const Color textSecondary = Color(0xFF5F5F5F);
 
   //border
   static const Color border = Color(0xFFACACAC);
 
   //borderLight
-  static const Color borderLight = Color(0xFFD5D5D5);
+  static const Color borderLight = Color(0xFFE9E9E9);
 
   //textfieldFilledColor
   static const Color textfieldFilledColor = Color(0XFFF9F9F9);

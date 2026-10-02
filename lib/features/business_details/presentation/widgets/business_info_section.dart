@@ -18,14 +18,16 @@ class BusinessInfoSection extends StatelessWidget {
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
-                child: Text('Reliance & Elegance Studio', style: textTheme.displayLarge),
+                child: Text(
+                  'Reliance & Elegance Studio',
+                  style: textTheme.displayLarge,
+                ),
               ),
               SizedBox(width: 2.w),
-              
+
               const _CircleIconButton(icon: Icons.call_rounded),
               SizedBox(width: 2.w),
               const _CircleIconButton(icon: Icons.chat_bubble_outline_rounded),
-              
             ],
           ),
           Row(

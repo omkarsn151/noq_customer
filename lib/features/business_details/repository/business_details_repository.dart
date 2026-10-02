@@ -6,7 +6,7 @@ class BusinessDetailsRepository {
   final DioClient _dioClient;
 
   BusinessDetailsRepository({DioClient? dioClient})
-      : _dioClient = dioClient ?? DioClient();
+    : _dioClient = dioClient ?? DioClient();
 
   Future<BusinessDetailsModel> getBusinessDetails(String id) async {
     final response = await _dioClient.get(

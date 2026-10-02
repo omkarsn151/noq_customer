@@ -67,6 +67,7 @@ class BusinessServiceModel {
   final int durationMinutes;
   final ServicePricing pricing;
   final bool isInCart;
+
   /// Id of the cart item holding this service; null when not in the cart.
   final String? cartItemId;
 
@@ -124,7 +125,9 @@ class BusinessDetailsModel {
           json['wait'] as Map<String, dynamic>? ?? {},
         ),
         services: (json['services'] as List<dynamic>? ?? [])
-            .map((e) => BusinessServiceModel.fromJson(e as Map<String, dynamic>))
+            .map(
+              (e) => BusinessServiceModel.fromJson(e as Map<String, dynamic>),
+            )
             .toList(),
       );
 }

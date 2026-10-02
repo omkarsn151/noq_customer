@@ -8,7 +8,8 @@ class BusinessDetailsBloc
     extends Bloc<BusinessDetailsEvent, BusinessDetailsState> {
   final BusinessDetailsRepository _repository;
 
-  BusinessDetailsBloc(this._repository) : super(const BusinessDetailsInitial()) {
+  BusinessDetailsBloc(this._repository)
+    : super(const BusinessDetailsInitial()) {
     on<BusinessDetailsRequested>(_onBusinessDetailsRequested);
   }
 

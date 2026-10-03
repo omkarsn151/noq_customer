@@ -44,19 +44,9 @@ class WelcomeScreen extends StatelessWidget {
                     child: AppButton(
                       label: 'Get Started',
                       onPressed: () => context.go('/login'),
-                      style: ElevatedButton.styleFrom(
-                        backgroundColor: AppColors.pink,
-                        foregroundColor: AppColors.primary,
-                        elevation: 0,
-                        minimumSize: Size(double.infinity, 56),
-                        shape: RoundedRectangleBorder(
-                          borderRadius: BorderRadius.circular(18.sp),
-                        ),
-                        textStyle: TextStyle(
-                          fontSize: 18.sp,
-                          fontWeight: FontWeight.w600,
-                        ),
-                      ),
+                      backgroundColor: AppColors.pink,
+                      foregroundColor: AppColors.primary,
+                      fontSize: 17.sp,
                     ),
                   ),
                   SizedBox(height: 4.h),

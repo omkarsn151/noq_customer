@@ -9,6 +9,7 @@ import 'package:noq/features/business_details/presentation/screen/business_detai
 import 'package:noq/features/cart/presentation/screens/cart_screen.dart';
 import 'package:noq/features/categories/presentation/screens/categories_screen.dart';
 import 'package:noq/features/dashboard/dashboard_screen.dart';
+import 'package:noq/features/dummy/service_slot.dart';
 import 'package:noq/features/home/presentation/screens/home_screen.dart';
 import 'package:noq/features/main_screen/main_screen.dart';
 import 'package:noq/features/privacy/privacy_policy_screen.dart';
@@ -16,6 +17,7 @@ import 'package:noq/features/profile/presentation/screens/profile_screen.dart';
 import 'package:noq/features/search/presentation/screens/search_screen.dart';
 import 'package:noq/features/service_list/presentation/screens/service_list_screen.dart';
 import 'package:noq/features/service/presentation/screens/service_details_screen.dart';
+import 'package:noq/features/slot/presentation/screens/slot_screen.dart';
 import 'package:noq/features/splash/splash_screen.dart';
 import 'package:noq/features/tnc/tnc_screen.dart';
 import 'package:noq/features/welcome/welcome_screen.dart';
@@ -70,6 +72,17 @@ class AppRouter {
       GoRoute(
         path: '/service-details',
         builder: (context, state) => const ServiceDetailsScreen(),
+      ),
+
+      GoRoute(
+        path: '/slots/:businessId',
+        builder: (context, state) =>
+            SlotScreen(businessId: state.pathParameters['businessId']!),
+      ),
+
+      GoRoute(
+        path: '/reschedule-slot',
+        builder: (context, state) => const ServiceSlot(isReschedule: true),
       ),
 
       GoRoute(

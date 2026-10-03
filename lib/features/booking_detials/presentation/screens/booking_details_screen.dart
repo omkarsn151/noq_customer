@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/verification_code_card.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
@@ -87,7 +88,12 @@ class BookingDetailsScreen extends StatelessWidget {
               SizedBox(height: 1.5.h),
               const PaymentCard(),
               SizedBox(height: 1.5.h),
-              ManageBookingCard(onReschedule: () {}, onCancel: () {}),
+              ManageBookingCard(
+                onReschedule: () {
+                  context.push('/reschedule-slot');
+                },
+                onCancel: () {},
+              ),
               SizedBox(height: 1.5.h),
             ],
           ),

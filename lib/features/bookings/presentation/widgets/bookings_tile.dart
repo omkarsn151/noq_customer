@@ -7,7 +7,6 @@ import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
 import 'package:noq/features/bookings/data/booking_model.dart';
 import 'package:noq/features/bookings/presentation/widgets/booking_status_label.dart';
-import 'package:noq/features/dummy/service_slot.dart';
 
 class BookingsTile extends StatelessWidget {
   final BookingModel booking;
@@ -19,9 +18,7 @@ class BookingsTile extends StatelessWidget {
   }
 
   void _onReschedule(BuildContext context) {
-    Navigator.of(context, rootNavigator: true).push(
-      MaterialPageRoute(builder: (_) => const ServiceSlot(isReschedule: true)),
-    );
+    context.push('/reschedule-slot');
   }
 
   void _onCancel(BuildContext context) {
@@ -32,7 +29,6 @@ class BookingsTile extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final startsAt = booking.schedule.startsAt;
-    final serviceLabel = booking.servicePreview.label;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16.sp),
@@ -40,7 +36,6 @@ class BookingsTile extends StatelessWidget {
       child: Container(
         padding: EdgeInsets.all(3.w),
         decoration: BoxDecoration(
-          color: Colors.white,
           borderRadius: BorderRadius.circular(16.sp),
           border: Border.all(color: AppColors.borderLight),
         ),
@@ -82,15 +77,25 @@ class BookingsTile extends StatelessWidget {
                 ),
                 if (booking.actions.hasAny)
                   PopupMenuButton<String>(
-                    icon: Icon(
-                      Icons.more_vert_rounded,
-                      color: AppColors.textSecondary,
-                    ),
                     padding: EdgeInsets.zero,
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(14.sp),
                     ),
-                    color: Colors.white,
+                    menuPadding: EdgeInsets.symmetric(
+                      horizontal: 2.w,
+                      vertical: 0.5.h,
+                    ),
+                    color: AppColors.background,
+                    surfaceTintColor: AppColors.background,
+                    elevation: 4,
+                    shadowColor: AppColors.borderLight,
+                    position: PopupMenuPosition.under,
+                    icon: Icon(
+                      Icons.more_vert,
+                      size: 18.sp,
+                      color: AppColors.textPrimary,
+                    ),
+
                     onSelected: (value) {
                       if (value == 'reschedule') {
                         _onReschedule(context);
@@ -112,14 +117,17 @@ class BookingsTile extends StatelessWidget {
                               SizedBox(width: 2.w),
                               Text(
                                 'Reschedule Booking',
-                                style: textTheme.bodySmall,
+                                style: Theme.of(context).textTheme.bodySmall,
                               ),
                             ],
                           ),
                         ),
                       if (booking.actions.canReschedule &&
                           booking.actions.canCancel)
-                        const PopupMenuDivider(height: 1),
+                        const PopupMenuDivider(
+                          height: 1,
+                          color: AppColors.border,
+                        ),
                       if (booking.actions.canCancel)
                         PopupMenuItem(
                           value: 'cancel',
@@ -133,9 +141,8 @@ class BookingsTile extends StatelessWidget {
                               SizedBox(width: 2.w),
                               Text(
                                 'Cancel Booking',
-                                style: textTheme.bodySmall?.copyWith(
-                                  color: AppColors.error,
-                                ),
+                                style: Theme.of(context).textTheme.bodySmall
+                                    ?.copyWith(color: AppColors.error),
                               ),
                             ],
                           ),

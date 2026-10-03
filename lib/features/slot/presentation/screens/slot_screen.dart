@@ -532,7 +532,7 @@ class _SlotFooter extends StatelessWidget {
           ],
         ),
         SizedBox(
-          width: 45.w,
+          width: 50.w,
           height: 5.h,
           child: AppButton(
             label: 'Proceed to Checkout',

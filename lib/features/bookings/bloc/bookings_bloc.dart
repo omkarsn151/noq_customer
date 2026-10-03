@@ -2,165 +2,111 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:noq/core/api/api_exception.dart';
 import 'package:noq/features/bookings/bloc/bookings_event.dart';
 import 'package:noq/features/bookings/bloc/bookings_state.dart';
-import 'package:noq/features/bookings/data/booking_tab.dart';
 import 'package:noq/features/bookings/repository/bookings_repository.dart';
 
 class BookingsBloc extends Bloc<BookingsEvent, BookingsState> {
-  static const int _pageSize = 10;
-
   final BookingsRepository _repository;
 
-  BookingsBloc(this._repository) : super(const BookingsInitial()) {
+  BookingsBloc(this._repository) : super(const BookingsState()) {
     on<BookingsRequested>(_onBookingsRequested);
-    on<BookingsTabChanged>(_onTabChanged);
-    on<BookingsRefreshed>(_onRefreshed);
+    on<BookingsRefreshRequested>(_onRefreshRequested);
     on<BookingsNextPageRequested>(_onNextPageRequested);
+  }
+
+  Future<void> _onRefreshRequested(
+    BookingsRefreshRequested event,
+    Emitter<BookingsState> emit,
+  ) async {
+    emit(const BookingsState());
+    add(BookingsRequested(tab: event.tab, refresh: true));
   }
 
   Future<void> _onBookingsRequested(
     BookingsRequested event,
     Emitter<BookingsState> emit,
   ) async {
-    emit(const BookingsLoading());
-    await _loadFirstPage(event.tab, emit, emitFailureState: true);
-  }
+    final tab = state.tabFor(event.tab);
 
-  Future<void> _onTabChanged(
-    BookingsTabChanged event,
-    Emitter<BookingsState> emit,
-  ) async {
-    final current = state;
+    // Tabs keep their bookings once loaded, so switching back is instant.
+    // A load already under way is left alone too, so a tab that asks for
+    // itself while it is filling does not fetch the same page twice.
+    if (!event.refresh &&
+        (tab.status == BookingsTabStatus.success ||
+            tab.status == BookingsTabStatus.loading)) {
+      return;
+    }
 
-    if (current is BookingsLoaded) {
-      if (current.tab == event.tab) return;
-      // Keep the old list on screen under a spinner rather than blanking it.
+    emit(
+      state.copyWithTab(
+        event.tab,
+        tab.copyWith(status: BookingsTabStatus.loading, message: ''),
+      ),
+    );
+
+    try {
+      final page = await _repository.getBookings(tab: event.tab);
       emit(
-        current.copyWith(
-          tab: event.tab,
-          isTabLoading: true,
-          isPageLoading: false,
-          pageError: null,
+        state.copyWithTab(
+          event.tab,
+          BookingsTabState(
+            status: BookingsTabStatus.success,
+            bookings: page.items,
+            meta: page.meta,
+          ),
         ),
       );
-      await _loadFirstPage(event.tab, emit, emitFailureState: false);
-      return;
+    } catch (e) {
+      emit(
+        state.copyWithTab(
+          event.tab,
+          tab.copyWith(
+            status: BookingsTabStatus.failure,
+            message: _messageOf(e),
+          ),
+        ),
+      );
     }
-
-    // Coming from a failed or not-yet-loaded screen: a full reload is the only
-    // sensible thing, so a failure may replace the screen again.
-    if (current is BookingsFailure && current.tab == event.tab) return;
-    emit(const BookingsLoading());
-    await _loadFirstPage(event.tab, emit, emitFailureState: true);
-  }
-
-  Future<void> _onRefreshed(
-    BookingsRefreshed event,
-    Emitter<BookingsState> emit,
-  ) async {
-    final current = state;
-    final tab = switch (current) {
-      BookingsLoaded() => current.tab,
-      BookingsFailure() => current.tab,
-      _ => BookingTab.upcoming,
-    };
-
-    if (current is BookingsLoaded) {
-      if (current.isTabLoading) return;
-      emit(current.copyWith(isPageLoading: false, pageError: null));
-      await _loadFirstPage(tab, emit, emitFailureState: false);
-      return;
-    }
-
-    emit(const BookingsLoading());
-    await _loadFirstPage(tab, emit, emitFailureState: true);
   }
 
   Future<void> _onNextPageRequested(
     BookingsNextPageRequested event,
     Emitter<BookingsState> emit,
   ) async {
-    final current = state;
-    if (current is! BookingsLoaded) return;
-    if (current.isTabLoading || current.isPageLoading) return;
-    if (current.hasReachedEnd) return;
-
-    final tab = current.tab;
-    final nextPage = current.meta.page + 1;
-
-    emit(current.copyWith(isPageLoading: true, pageError: null));
-
-    try {
-      final result = await _repository.getBookings(
-        tab: tab,
-        page: nextPage,
-        pageSize: _pageSize,
-      );
-      final latest = state;
-      // Drop the response if the customer has since switched tabs.
-      if (latest is! BookingsLoaded || latest.tab != tab) return;
-      emit(
-        latest.copyWith(
-          bookings: [...latest.bookings, ...result.items],
-          meta: result.meta,
-          isPageLoading: false,
-        ),
-      );
-    } on ApiException catch (e) {
-      _emitPageError(emit, tab, e.message);
-    } catch (e) {
-      _emitPageError(emit, tab, e.toString());
-    }
-  }
-
-  /// Fetches page 1 of [tab] and replaces the list. When [emitFailureState] is
-  /// false a failure is reported inline so the existing list stays on screen.
-  Future<void> _loadFirstPage(
-    BookingTab tab,
-    Emitter<BookingsState> emit, {
-    required bool emitFailureState,
-  }) async {
-    try {
-      final result = await _repository.getBookings(
-        tab: tab,
-        page: 1,
-        pageSize: _pageSize,
-      );
-      final latest = state;
-      // Drop the response if the customer has since switched tabs.
-      if (latest is BookingsLoaded && latest.tab != tab) return;
-      emit(
-        BookingsLoaded(tab: tab, bookings: result.items, meta: result.meta),
-      );
-    } on ApiException catch (e) {
-      _emitFirstPageError(emit, tab, e.message, emitFailureState);
-    } catch (e) {
-      _emitFirstPageError(emit, tab, e.toString(), emitFailureState);
-    }
-  }
-
-  void _emitFirstPageError(
-    Emitter<BookingsState> emit,
-    BookingTab tab,
-    String message,
-    bool emitFailureState,
-  ) {
-    final latest = state;
-    if (latest is BookingsLoaded && latest.tab != tab) return;
-
-    if (emitFailureState || latest is! BookingsLoaded) {
-      emit(BookingsFailure(message: message, tab: tab));
+    final tab = state.tabFor(event.tab);
+    if (tab.isLoadingMore ||
+        !tab.hasMore ||
+        tab.status != BookingsTabStatus.success) {
       return;
     }
-    emit(latest.copyWith(isTabLoading: false, pageError: message));
+
+    emit(state.copyWithTab(event.tab, tab.copyWith(isLoadingMore: true)));
+
+    try {
+      final page = await _repository.getBookings(
+        tab: event.tab,
+        page: tab.meta.page + 1,
+      );
+      emit(
+        state.copyWithTab(
+          event.tab,
+          tab.copyWith(
+            bookings: [...tab.bookings, ...page.items],
+            meta: page.meta,
+            isLoadingMore: false,
+          ),
+        ),
+      );
+    } catch (e) {
+      // Keep the loaded pages on screen and surface the message inline.
+      emit(
+        state.copyWithTab(
+          event.tab,
+          tab.copyWith(isLoadingMore: false, message: _messageOf(e)),
+        ),
+      );
+    }
   }
 
-  void _emitPageError(
-    Emitter<BookingsState> emit,
-    BookingTab tab,
-    String message,
-  ) {
-    final latest = state;
-    if (latest is! BookingsLoaded || latest.tab != tab) return;
-    emit(latest.copyWith(isPageLoading: false, pageError: message));
-  }
+  String _messageOf(Object error) =>
+      error is ApiException ? error.message : error.toString();
 }

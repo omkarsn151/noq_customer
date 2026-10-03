@@ -6,6 +6,8 @@ import 'package:noq/features/bookings/data/booking_model.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
 
 class BookingsRepository {
+  static const int defaultPageSize = 10;
+
   final DioClient _dioClient;
 
   BookingsRepository({DioClient? dioClient})
@@ -13,8 +15,8 @@ class BookingsRepository {
 
   Future<PaginatedResponse<BookingModel>> getBookings({
     required BookingTab tab,
-    required int page,
-    required int pageSize,
+    int page = 1,
+    int pageSize = defaultPageSize,
   }) async {
     final response = await _dioClient.get(
       ApiEndpoints.getBookingsList,

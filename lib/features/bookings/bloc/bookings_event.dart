@@ -8,32 +8,35 @@ abstract class BookingsEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// First load of the screen.
+/// Loads the first page of [tab]. Already loaded tabs are served from the
+/// cached state unless [refresh] is set.
 class BookingsRequested extends BookingsEvent {
   final BookingTab tab;
+  final bool refresh;
 
-  const BookingsRequested({this.tab = BookingTab.upcoming});
+  const BookingsRequested({required this.tab, this.refresh = false});
 
   @override
-  List<Object?> get props => [tab];
+  List<Object?> get props => [tab, refresh];
 }
 
-/// Pill tap; ignored when the tab is already selected.
-class BookingsTabChanged extends BookingsEvent {
+/// Drops every cached tab and reloads [tab]. Used after a booking changes
+/// state (created, rescheduled, cancelled), since that moves rows between tabs.
+class BookingsRefreshRequested extends BookingsEvent {
   final BookingTab tab;
 
-  const BookingsTabChanged(this.tab);
+  const BookingsRefreshRequested({required this.tab});
 
   @override
   List<Object?> get props => [tab];
 }
 
-/// Pull-to-refresh; reloads page 1 of the current tab.
-class BookingsRefreshed extends BookingsEvent {
-  const BookingsRefreshed();
-}
-
-/// Fired by the scroll listener as the list nears its end.
+/// Appends the next page of [tab] to the already loaded bookings.
 class BookingsNextPageRequested extends BookingsEvent {
-  const BookingsNextPageRequested();
+  final BookingTab tab;
+
+  const BookingsNextPageRequested({required this.tab});
+
+  @override
+  List<Object?> get props => [tab];
 }

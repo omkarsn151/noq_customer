@@ -3,97 +3,69 @@ import 'package:noq/core/models/paginated_response.dart';
 import 'package:noq/features/bookings/data/booking_model.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
 
-/// Sentinel used by [BookingsLoaded.copyWith] so that nullable fields can be
-/// cleared as well as replaced.
-const Object _unset = Object();
+enum BookingsTabStatus { initial, loading, success, failure }
 
-abstract class BookingsState extends Equatable {
-  const BookingsState();
-
-  @override
-  List<Object?> get props => [];
-}
-
-class BookingsInitial extends BookingsState {
-  const BookingsInitial();
-}
-
-class BookingsLoading extends BookingsState {
-  const BookingsLoading();
-}
-
-class BookingsLoaded extends BookingsState {
-  final BookingTab tab;
+/// Loading state of a single tab - each tab paginates independently.
+class BookingsTabState extends Equatable {
+  final BookingsTabStatus status;
   final List<BookingModel> bookings;
   final PageMeta meta;
 
-  /// True while a tab switch is being fetched; the list area shows a spinner
-  /// but the pills stay put.
-  final bool isTabLoading;
+  /// True while the next page is being appended.
+  final bool isLoadingMore;
+  final String message;
 
-  /// True while the next page is being fetched; only the list footer shows a
-  /// spinner.
-  final bool isPageLoading;
-
-  /// Error from a failed tab switch or next-page fetch, surfaced as a snackbar
-  /// so the already-loaded list survives; a first-load failure emits
-  /// [BookingsFailure] instead.
-  final String? pageError;
-
-  const BookingsLoaded({
-    required this.tab,
-    required this.bookings,
-    required this.meta,
-    this.isTabLoading = false,
-    this.isPageLoading = false,
-    this.pageError,
+  const BookingsTabState({
+    this.status = BookingsTabStatus.initial,
+    this.bookings = const [],
+    this.meta = const PageMeta.empty(),
+    this.isLoadingMore = false,
+    this.message = '',
   });
 
-  bool get hasReachedEnd => !meta.hasNextPage;
+  bool get hasMore => meta.hasNextPage;
 
-  BookingsLoaded copyWith({
-    BookingTab? tab,
+  BookingsTabState copyWith({
+    BookingsTabStatus? status,
     List<BookingModel>? bookings,
     PageMeta? meta,
-    bool? isTabLoading,
-    bool? isPageLoading,
-    Object? pageError = _unset,
+    bool? isLoadingMore,
+    String? message,
   }) {
-    return BookingsLoaded(
-      tab: tab ?? this.tab,
+    return BookingsTabState(
+      status: status ?? this.status,
       bookings: bookings ?? this.bookings,
       meta: meta ?? this.meta,
-      isTabLoading: isTabLoading ?? this.isTabLoading,
-      isPageLoading: isPageLoading ?? this.isPageLoading,
-      pageError: identical(pageError, _unset)
-          ? this.pageError
-          : pageError as String?,
+      isLoadingMore: isLoadingMore ?? this.isLoadingMore,
+      message: message ?? this.message,
     );
   }
 
   @override
   List<Object?> get props => [
-    tab,
+    status,
     bookings,
     // PageMeta is a plain model, so compare the fields the UI depends on.
     meta.page,
     meta.totalPages,
     meta.totalItems,
-    isTabLoading,
-    isPageLoading,
-    pageError,
+    isLoadingMore,
+    message,
   ];
 }
 
-class BookingsFailure extends BookingsState {
-  final String message;
+class BookingsState extends Equatable {
+  final Map<BookingTab, BookingsTabState> tabs;
 
-  /// Kept so the pills stay usable on a failed screen and a retry knows which
-  /// tab to reload.
-  final BookingTab tab;
+  const BookingsState({this.tabs = const {}});
 
-  const BookingsFailure({required this.message, required this.tab});
+  BookingsTabState tabFor(BookingTab tab) =>
+      tabs[tab] ?? const BookingsTabState();
+
+  BookingsState copyWithTab(BookingTab tab, BookingsTabState tabState) {
+    return BookingsState(tabs: {...tabs, tab: tabState});
+  }
 
   @override
-  List<Object?> get props => [message, tab];
+  List<Object?> get props => [tabs];
 }

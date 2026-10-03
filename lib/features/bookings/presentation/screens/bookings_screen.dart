@@ -2,13 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
-import 'package:noq/core/common/app_snackbar.dart';
+import 'package:noq/core/common/app_pill_tab_bar.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
 import 'package:noq/features/bookings/bloc/bookings_event.dart';
 import 'package:noq/features/bookings/bloc/bookings_state.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
-import 'package:noq/features/bookings/presentation/widgets/booking_tab_pills.dart';
 import 'package:noq/features/bookings/presentation/widgets/bookings_tile.dart';
 
 class BookingsScreen extends StatefulWidget {
@@ -18,157 +17,189 @@ class BookingsScreen extends StatefulWidget {
   State<BookingsScreen> createState() => _BookingsScreenState();
 }
 
-class _BookingsScreenState extends State<BookingsScreen> {
-  /// How close to the bottom of the list the next page starts loading.
-  static const double _loadMoreThreshold = 300;
-
-  final ScrollController _scrollController = ScrollController();
+class _BookingsScreenState extends State<BookingsScreen>
+    with SingleTickerProviderStateMixin {
+  late final TabController _tabController = TabController(
+    length: BookingTab.values.length,
+    vsync: this,
+  );
 
   @override
   void initState() {
     super.initState();
-    _scrollController.addListener(_onScroll);
+    _tabController.addListener(_onTabChanged);
     context.read<BookingsBloc>().add(
-      const BookingsRequested(tab: BookingTab.upcoming),
+      BookingsRequested(tab: BookingTab.values.first, refresh: true),
     );
   }
 
   @override
   void dispose() {
-    _scrollController
-      ..removeListener(_onScroll)
-      ..dispose();
+    _tabController.removeListener(_onTabChanged);
+    _tabController.dispose();
     super.dispose();
   }
 
-  void _onScroll() {
-    if (!_scrollController.hasClients) return;
-    final position = _scrollController.position;
-    if (position.pixels < position.maxScrollExtent - _loadMoreThreshold) return;
-    // The bloc drops the event when a fetch is already running or the last
-    // page has been reached, so repeat fires are harmless.
-    context.read<BookingsBloc>().add(const BookingsNextPageRequested());
+  /// Loads a tab the first time it is opened.
+  void _onTabChanged() {
+    if (_tabController.indexIsChanging) return;
+    context.read<BookingsBloc>().add(
+      BookingsRequested(tab: BookingTab.values[_tabController.index]),
+    );
   }
-
-  BookingTab _selectedTab(BookingsState state) => switch (state) {
-    BookingsLoaded() => state.tab,
-    BookingsFailure() => state.tab,
-    _ => BookingTab.upcoming,
-  };
 
   @override
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(title: 'Bookings', showLeading: false),
-      body: BlocConsumer<BookingsBloc, BookingsState>(
-        listenWhen: (previous, current) =>
-            current is BookingsLoaded &&
-            current.pageError != null &&
-            (previous is! BookingsLoaded ||
-                previous.pageError != current.pageError),
-        listener: (context, state) {
-          AppSnackbar.error(context, (state as BookingsLoaded).pageError!);
-        },
+      body: BlocBuilder<BookingsBloc, BookingsState>(
         builder: (context, state) {
-          return Padding(
-            padding: EdgeInsets.symmetric(horizontal: 5.w),
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                BookingTabPills(
-                  selected: _selectedTab(state),
-                  onSelected: (tab) => context.read<BookingsBloc>().add(
-                    BookingsTabChanged(tab),
-                  ),
+          return Column(
+            crossAxisAlignment: CrossAxisAlignment.start,
+            children: [
+              AppPillTabBar(
+                controller: _tabController,
+                labels: [for (final tab in BookingTab.values) tab.label],
+              ),
+              SizedBox(height: 2.5.h),
+              Expanded(
+                child: TabBarView(
+                  controller: _tabController,
+                  children: [
+                    for (final tab in BookingTab.values)
+                      _BookingsList(tab: tab, tabState: state.tabFor(tab)),
+                  ],
                 ),
-                SizedBox(height: 2.5.h),
-                Expanded(child: _buildList(context, state)),
-              ],
-            ),
+              ),
+            ],
           );
         },
       ),
     );
   }
-
-  Widget _buildList(BuildContext context, BookingsState state) {
-    return switch (state) {
-      BookingsFailure() => _CenteredMessage(message: state.message),
-      BookingsLoaded() => state.isTabLoading
-          ? const Center(child: CircularProgressIndicator())
-          : _BookingsList(state: state, controller: _scrollController),
-      _ => const Center(child: CircularProgressIndicator()),
-    };
-  }
 }
 
 class _BookingsList extends StatelessWidget {
-  final BookingsLoaded state;
-  final ScrollController controller;
+  /// How close to the bottom of the list the next page starts loading.
+  static const double _loadMoreThreshold = 300;
 
-  const _BookingsList({required this.state, required this.controller});
+  final BookingTab tab;
+  final BookingsTabState tabState;
+
+  const _BookingsList({required this.tab, required this.tabState});
+
+  void _loadFirstPage(BuildContext context) {
+    context.read<BookingsBloc>().add(
+      BookingsRequested(tab: tab, refresh: true),
+    );
+  }
+
+  /// Requests the next page once the list is scrolled near its end.
+  bool _onScroll(BuildContext context, ScrollNotification notification) {
+    final position = notification.metrics;
+    if (position.axis != Axis.vertical) return false;
+
+    if (tabState.hasMore &&
+        !tabState.isLoadingMore &&
+        position.pixels >= position.maxScrollExtent - _loadMoreThreshold) {
+      context.read<BookingsBloc>().add(BookingsNextPageRequested(tab: tab));
+    }
+    return false;
+  }
 
   @override
   Widget build(BuildContext context) {
+    if (tabState.status == BookingsTabStatus.initial) {
+      // A refresh drops every cached tab, so a tab can come back into view
+      // with nothing in it and nothing fetching. It asks for itself here; the
+      // bloc ignores the ask if a load is already running.
+      WidgetsBinding.instance.addPostFrameCallback((_) {
+        if (!context.mounted) return;
+        context.read<BookingsBloc>().add(BookingsRequested(tab: tab));
+      });
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (tabState.status == BookingsTabStatus.loading) {
+      return const Center(child: CircularProgressIndicator());
+    }
+
+    if (tabState.status == BookingsTabStatus.failure) {
+      return _BookingsMessage(
+        message: tabState.message,
+        onRetry: () => _loadFirstPage(context),
+      );
+    }
+
+    if (tabState.bookings.isEmpty) {
+      return _BookingsMessage(
+        message: 'No ${tab.label.toLowerCase()} bookings',
+        onRetry: () => _loadFirstPage(context),
+      );
+    }
+
     return RefreshIndicator(
       color: AppColors.primary,
-      onRefresh: () async {
-        context.read<BookingsBloc>().add(const BookingsRefreshed());
-      },
-      child: state.bookings.isEmpty
-          // Kept scrollable so pull-to-refresh still works on an empty tab.
-          ? ListView(
-              physics: const AlwaysScrollableScrollPhysics(),
-              children: [
-                SizedBox(height: 20.h),
-                _CenteredMessage(
-                  message: 'No ${state.tab.label.toLowerCase()} bookings',
+      onRefresh: () async => _loadFirstPage(context),
+      child: NotificationListener<ScrollNotification>(
+        onNotification: (notification) => _onScroll(context, notification),
+        child: ListView.separated(
+          padding: EdgeInsets.fromLTRB(5.w, 0, 5.w, 2.h),
+          physics: const AlwaysScrollableScrollPhysics(),
+          itemCount: tabState.bookings.length + (tabState.isLoadingMore ? 1 : 0),
+          separatorBuilder: (_, _) => SizedBox(height: 2.h),
+          itemBuilder: (context, index) {
+            if (index == tabState.bookings.length) {
+              return Padding(
+                padding: EdgeInsets.symmetric(vertical: 2.h),
+                child: const Center(
+                  child: SizedBox(
+                    width: 24,
+                    height: 24,
+                    child: CircularProgressIndicator(strokeWidth: 2),
+                  ),
                 ),
-              ],
-            )
-          : ListView.separated(
-              controller: controller,
-              physics: const AlwaysScrollableScrollPhysics(),
-              padding: EdgeInsets.only(bottom: 2.h),
-              itemCount: state.bookings.length + (state.isPageLoading ? 1 : 0),
-              separatorBuilder: (_, _) => SizedBox(height: 2.h),
-              itemBuilder: (context, index) {
-                if (index >= state.bookings.length) {
-                  return Padding(
-                    padding: EdgeInsets.symmetric(vertical: 2.h),
-                    child: const Center(
-                      child: SizedBox(
-                        width: 24,
-                        height: 24,
-                        child: CircularProgressIndicator(strokeWidth: 2),
-                      ),
-                    ),
-                  );
-                }
-                return BookingsTile(booking: state.bookings[index]);
-              },
-            ),
+              );
+            }
+            return BookingsTile(booking: tabState.bookings[index]);
+          },
+        ),
+      ),
     );
   }
 }
 
-class _CenteredMessage extends StatelessWidget {
+class _BookingsMessage extends StatelessWidget {
   final String message;
+  final VoidCallback onRetry;
 
-  const _CenteredMessage({required this.message});
+  const _BookingsMessage({required this.message, required this.onRetry});
 
   @override
   Widget build(BuildContext context) {
-    return Center(
-      child: Padding(
-        padding: EdgeInsets.symmetric(horizontal: 4.w),
-        child: Text(
-          message,
-          textAlign: TextAlign.center,
-          style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-            color: AppColors.textSecondary,
+    // Kept scrollable so pull-to-refresh still works on an empty or failed tab.
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async => onRetry(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        children: [
+          SizedBox(height: 20.h),
+          Padding(
+            padding: EdgeInsets.symmetric(horizontal: 8.w),
+            child: Text(
+              message,
+              textAlign: TextAlign.center,
+              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                color: AppColors.textSecondary,
+              ),
+            ),
           ),
-        ),
+          SizedBox(height: 1.5.h),
+          Center(
+            child: TextButton(onPressed: onRetry, child: const Text('Retry')),
+          ),
+        ],
       ),
     );
   }

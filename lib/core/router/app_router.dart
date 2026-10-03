@@ -2,6 +2,7 @@ import 'package:go_router/go_router.dart';
 import 'package:noq/features/auth/request_otp/presentation/screens/login_screen.dart';
 import 'package:noq/features/auth/verify_otp/presentation/screens/otp_verification_scren.dart';
 import 'package:noq/features/auth/register/presentation/screens/register_screen.dart';
+import 'package:noq/features/booking_detials/presentation/screens/booking_details_screen.dart';
 import 'package:noq/features/bookings/presentation/screens/bookings_screen.dart';
 import 'package:noq/features/business/presentation/business_list_screen.dart';
 import 'package:noq/features/business_details/presentation/screen/business_details_screen.dart';
@@ -69,6 +70,12 @@ class AppRouter {
       GoRoute(
         path: '/service-details',
         builder: (context, state) => const ServiceDetailsScreen(),
+      ),
+
+      GoRoute(
+        path: '/booking-details/:id',
+        builder: (context, state) =>
+            BookingDetailsScreen(bookingId: state.pathParameters['id']!),
       ),
 
       GoRoute(

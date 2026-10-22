@@ -23,9 +23,6 @@ class ApiEndpoints {
 
   static const String deleteUpload = "v1/uploads/";
 
-  //====================Business====================
-  static const String getBusinessList = "v1/customer/businesses";
-
   //====================Business Details====================
   static const String getBusinessDetails = "v1/customer/businesses";
 
@@ -48,4 +45,10 @@ class ApiEndpoints {
   static const String getPromoCodes = "v1/customer/cart/promos";
   static const String applyPromoCode = "v1/customer/cart/promo";
   static const String removePromoCode = "v1/customer/cart/promo";
+
+  //====================Categories====================
+  static const String getCategories = "v1/categories";
+
+  //====================Home====================
+  static const String customerHome = "v1/customer/home";
 }

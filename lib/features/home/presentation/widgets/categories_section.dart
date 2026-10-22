@@ -3,9 +3,12 @@ import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/categories/presentation/widgets/category_card.dart';
+import 'package:noq/features/home/data/home_model.dart';
 
 class CategoriesSection extends StatelessWidget {
-  const CategoriesSection({super.key});
+  final HomeCategoriesModel categories;
+
+  const CategoriesSection({super.key, required this.categories});
 
   @override
   Widget build(BuildContext context) {
@@ -23,20 +26,21 @@ class CategoriesSection extends StatelessWidget {
                   color: AppColors.textPrimary,
                 ),
               ),
-              GestureDetector(
-                onTap: () => context.push('/categories'),
-                child: Text(
-                  'View All',
-                  style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                    fontWeight: FontWeight.w600,
-                    color: AppColors.primary,
+              if (categories.hasMore)
+                GestureDetector(
+                  onTap: () => context.push('/categories'),
+                  child: Text(
+                    'View All',
+                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                      fontWeight: FontWeight.w600,
+                      color: AppColors.primary,
+                    ),
                   ),
                 ),
-              ),
             ],
           ),
           SizedBox(height: 1.5.h),
-          CategoryGrid(items: categoryItems.take(4).toList()),
+          CategoryGrid(items: categories.items),
         ],
       ),
     );

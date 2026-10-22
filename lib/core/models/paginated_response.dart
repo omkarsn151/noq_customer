@@ -12,7 +12,11 @@ class PageMeta {
     required this.totalPages,
   });
 
-  const PageMeta.empty() : page = 1, pageSize = 0, totalItems = 0, totalPages = 0;
+  const PageMeta.empty()
+    : page = 1,
+      pageSize = 0,
+      totalItems = 0,
+      totalPages = 0;
 
   factory PageMeta.fromJson(Map<String, dynamic> json) {
     return PageMeta(
@@ -26,7 +30,9 @@ class PageMeta {
   bool get hasNextPage => page < totalPages;
 }
 
-/// Wraps a `{ data: [...], meta: { pagination: {...} } }` response body.
+/// Wraps a `{ data: [...], meta: { pagination: {...} } }` response body. Some
+/// endpoints (e.g. `GET /categories`) send the pagination fields flat on
+/// `meta` instead; both shapes are read.
 class PaginatedResponse<T> {
   final List<T> items;
   final PageMeta meta;
@@ -37,10 +43,8 @@ class PaginatedResponse<T> {
     Map<String, dynamic> json,
     T Function(Map<String, dynamic> json) itemFromJson,
   ) {
-    final pagination =
-        (json['meta'] as Map<String, dynamic>? ?? const {})['pagination']
-            as Map<String, dynamic>? ??
-        const {};
+    final meta = json['meta'] as Map<String, dynamic>? ?? const {};
+    final pagination = meta['pagination'] as Map<String, dynamic>? ?? meta;
 
     return PaginatedResponse(
       items: (json['data'] as List<dynamic>? ?? const [])

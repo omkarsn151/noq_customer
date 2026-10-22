@@ -1,46 +1,10 @@
 import 'package:flutter/material.dart';
-import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
-
-class CategoryItem {
-  final String title;
-  final String subtitle;
-  final String image;
-
-  const CategoryItem({
-    required this.title,
-    required this.subtitle,
-    required this.image,
-  });
-}
-
-const List<CategoryItem> categoryItems = [
-  CategoryItem(
-    title: 'Haircuts',
-    subtitle: 'Quick trims',
-    image: AppAssets.category1,
-  ),
-  CategoryItem(
-    title: 'Health',
-    subtitle: 'Clinic walk-ins',
-    image: AppAssets.category2,
-  ),
-  CategoryItem(
-    title: 'Auto Care',
-    subtitle: 'Oil & repairs',
-    image: AppAssets.category3,
-  ),
-  CategoryItem(
-    title: 'SPA',
-    subtitle: 'Rejuvenate',
-    image: AppAssets.category4,
-  ),
-];
+import 'package:noq/features/categories/data/category_model.dart';
 
 class CategoryGrid extends StatelessWidget {
-  final List<CategoryItem> items;
+  final List<CategoryModel> items;
 
   const CategoryGrid({super.key, required this.items});
 
@@ -57,16 +21,13 @@ class CategoryGrid extends StatelessWidget {
         mainAxisSpacing: 3.w,
         childAspectRatio: 1.8,
       ),
-      itemBuilder: (context, index) => GestureDetector(
-        onTap: () => context.push('/businesses', extra: items[index].title),
-        child: CategoryCard(item: items[index]),
-      ),
+      itemBuilder: (context, index) => CategoryCard(item: items[index]),
     );
   }
 }
 
 class CategoryCard extends StatelessWidget {
-  final CategoryItem item;
+  final CategoryModel item;
 
   const CategoryCard({super.key, required this.item});
 
@@ -86,7 +47,7 @@ class CategoryCard extends StatelessWidget {
         child: Stack(
           fit: StackFit.expand,
           children: [
-            Image.asset(item.image, fit: BoxFit.cover),
+            _CategoryImage(imageUrl: item.imageUrl),
             const DecoratedBox(
               decoration: BoxDecoration(
                 gradient: LinearGradient(
@@ -111,26 +72,48 @@ class CategoryCard extends StatelessWidget {
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    item.title,
+                    item.name,
                     style: Theme.of(context).textTheme.titleSmall?.copyWith(
                       fontWeight: FontWeight.w800,
                       color: AppColors.textPrimary,
                     ),
                   ),
-                  SizedBox(height: 0.2.h),
-                  Text(
-                    item.subtitle,
-                    style: Theme.of(context).textTheme.bodySmall?.copyWith(
-                      fontWeight: FontWeight.w500,
-                      color: AppColors.textSecondary,
+                  if (item.description != null) ...[
+                    SizedBox(height: 0.2.h),
+                    Text(
+                      item.description!,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                        fontWeight: FontWeight.w500,
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+}
+
+class _CategoryImage extends StatelessWidget {
+  final String? imageUrl;
+
+  const _CategoryImage({required this.imageUrl});
+
+  @override
+  Widget build(BuildContext context) {
+    const placeholder = ColoredBox(color: AppColors.borderLight);
+    final url = imageUrl;
+    if (url == null) return placeholder;
+    return Image.network(
+      url,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder,
     );
   }
 }

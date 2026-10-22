@@ -1,11 +1,15 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_button.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/core/utils/date_time_utils.dart';
+import 'package:noq/features/home/data/home_model.dart';
 
 class UpNextSection extends StatelessWidget {
-  const UpNextSection({super.key});
+  final UpNextModel upNext;
+
+  const UpNextSection({super.key, required this.upNext});
 
   @override
   Widget build(BuildContext context) {
@@ -22,7 +26,7 @@ class UpNextSection extends StatelessWidget {
             ),
           ),
           SizedBox(height: 1.5.h),
-          const _UpNextCard(),
+          _UpNextCard(upNext: upNext),
         ],
       ),
     );
@@ -30,10 +34,14 @@ class UpNextSection extends StatelessWidget {
 }
 
 class _UpNextCard extends StatelessWidget {
-  const _UpNextCard();
+  final UpNextModel upNext;
+
+  const _UpNextCard({required this.upNext});
 
   @override
   Widget build(BuildContext context) {
+    final business = upNext.business;
+    final thumbnailUrl = business.thumbnailUrl;
     final textTheme = Theme.of(context).textTheme;
     final radius = BorderRadius.circular(5.w);
     return Container(
@@ -60,7 +68,13 @@ class _UpNextCard extends StatelessWidget {
                       child: Stack(
                         fit: StackFit.expand,
                         children: [
-                          Image.asset(AppAssets.upNext, fit: BoxFit.cover),
+                          if (thumbnailUrl != null)
+                            Image.network(
+                              thumbnailUrl,
+                              fit: BoxFit.cover,
+                              errorBuilder: (context, error, stackTrace) =>
+                                  const SizedBox.shrink(),
+                            ),
                           const DecoratedBox(
                             decoration: BoxDecoration(
                               gradient: LinearGradient(
@@ -84,14 +98,20 @@ class _UpNextCard extends StatelessWidget {
                     crossAxisAlignment: CrossAxisAlignment.start,
                     children: [
                       Text(
-                        'Est. 12 min',
+                        upNext.isInProgress
+                            ? 'In progress'
+                            : DateTimeUtils.formatBookingDateTime(
+                                upNext.startsAt,
+                              ),
                         style: textTheme.titleSmall?.copyWith(
                           fontWeight: FontWeight.w800,
                           color: AppColors.textPrimary,
                         ),
                       ),
                       Text(
-                        'General Checkup',
+                        upNext.services.join(', '),
+                        maxLines: 1,
+                        overflow: TextOverflow.ellipsis,
                         style: textTheme.bodySmall?.copyWith(
                           fontWeight: FontWeight.w500,
                           color: AppColors.textSecondary,
@@ -112,11 +132,16 @@ class _UpNextCard extends StatelessWidget {
                             ),
                             child: ClipRRect(
                               borderRadius: radius,
-                              child: Image.asset(
-                                AppAssets.businessThumbnail,
+                              // Not in the API yet — placeholder until it is.
+                              child: Container(
                                 width: 12.5.w,
                                 height: 12.5.w,
-                                fit: BoxFit.cover,
+                                color: AppColors.borderLight,
+                                child: Icon(
+                                  Icons.storefront_outlined,
+                                  size: 18.sp,
+                                  color: AppColors.textSecondary,
+                                ),
                               ),
                             ),
                           ),
@@ -126,14 +151,18 @@ class _UpNextCard extends StatelessWidget {
                               crossAxisAlignment: CrossAxisAlignment.start,
                               children: [
                                 Text(
-                                  'City Health Clinic',
+                                  business.name,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: textTheme.bodyMedium?.copyWith(
                                     fontWeight: FontWeight.w800,
                                     color: AppColors.textPrimary,
                                   ),
                                 ),
                                 Text(
-                                  'Health Care',
+                                  business.categoryName,
+                                  maxLines: 1,
+                                  overflow: TextOverflow.ellipsis,
                                   style: textTheme.bodySmall?.copyWith(
                                     fontWeight: FontWeight.w500,
                                     color: AppColors.textSecondary,
@@ -157,7 +186,8 @@ class _UpNextCard extends StatelessWidget {
                     child: AppButton(
                       label: 'Details',
                       height: 5.5.h,
-                      onPressed: () {},
+                      onPressed: () =>
+                          context.push('/booking-details/${upNext.bookingId}'),
                       backgroundColor: AppColors.primaryLight,
                       foregroundColor: AppColors.primary,
                     ),
@@ -167,7 +197,8 @@ class _UpNextCard extends StatelessWidget {
                     child: AppButton(
                       label: "I'm Here",
                       height: 5.5.h,
-                      onPressed: () {},
+                      // No backend for check-in yet — only the shop starts a visit.
+                      onPressed: null,
                     ),
                   ),
                 ],

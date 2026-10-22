@@ -4,30 +4,42 @@ import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
 class BusinessCardWidget extends StatelessWidget {
-  final String image;
-  final String? tag;
+  /// Remote thumbnail from the API; a placeholder is shown when null.
+  final String? imageUrl;
+
   final String name;
   final String services;
-  final String priceRange;
+
+  /// Hidden when null (shop has no live services).
+  final String? priceRange;
+
   final double rating;
-  final String address;
-  final String distance;
-  final int waitMinutes;
+
+  /// When 0 the card shows "New" instead of stars; null keeps the plain
+  /// average.
+  final int? totalReviews;
+
+  final String? address;
+  final String? distance;
+
+  /// Hidden when null (shop hasn't set its slot settings).
+  final int? waitMinutes;
+
   final bool isFavorite;
   final VoidCallback? onTap;
   final VoidCallback? onFavoriteTap;
 
   const BusinessCardWidget({
     super.key,
-    required this.image,
-    this.tag,
+    this.imageUrl,
     required this.name,
     required this.services,
-    required this.priceRange,
+    this.priceRange,
     required this.rating,
-    required this.address,
-    required this.distance,
-    required this.waitMinutes,
+    this.totalReviews,
+    this.address,
+    this.distance,
+    this.waitMinutes,
     this.isFavorite = false,
     this.onTap,
     this.onFavoriteTap,
@@ -37,6 +49,7 @@ class BusinessCardWidget extends StatelessWidget {
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final radius = 5.w;
+    final location = [address, distance].whereType<String>().join(' • ');
 
     return InkWell(
       borderRadius: BorderRadius.circular(radius),
@@ -56,55 +69,8 @@ class BusinessCardWidget extends StatelessWidget {
                   borderRadius: BorderRadius.vertical(
                     top: Radius.circular(radius),
                   ),
-                  child: Image.asset(
-                    image,
-                    width: double.infinity,
-                    height: 20.h,
-                    fit: BoxFit.cover,
-                  ),
+                  child: _buildImage(),
                 ),
-                if (tag != null)
-                  Positioned(
-                    top: 2.5.w,
-                    left: 2.5.w,
-                    child: Container(
-                      padding: EdgeInsets.symmetric(
-                        horizontal: 2.5.w,
-                        vertical: 0.6.h,
-                      ),
-                      decoration: BoxDecoration(
-                        color: AppColors.background,
-                        borderRadius: BorderRadius.circular(radius),
-                        boxShadow: [
-                          BoxShadow(
-                            color: AppColors.blue.withOpacity(0.1),
-                            blurRadius: 4,
-                            offset: const Offset(0, 2),
-                          ),
-                        ],
-                      ),
-                      child: Row(
-                        mainAxisSize: MainAxisSize.min,
-                        crossAxisAlignment: CrossAxisAlignment.center,
-                        children: [
-                          Icon(
-                            Icons.local_offer_outlined,
-                            size: 14.5.sp,
-                            color: AppColors.blue,
-                          ),
-                          SizedBox(width: 1.w),
-                          Text(
-                            tag!,
-                            style: textTheme.labelSmall?.copyWith(
-                              fontSize: 12.5.sp,
-                              fontWeight: FontWeight.w600,
-                              color: AppColors.blue,
-                            ),
-                          ),
-                        ],
-                      ),
-                    ),
-                  ),
                 Positioned(
                   top: 2.5.w,
                   right: 2.5.w,
@@ -148,14 +114,16 @@ class BusinessCardWidget extends StatelessWidget {
                           overflow: TextOverflow.ellipsis,
                         ),
                       ),
-                      SizedBox(width: 2.w),
-                      Text(
-                        priceRange,
-                        style: textTheme.bodyLarge?.copyWith(
-                          fontWeight: FontWeight.w700,
-                          color: AppColors.primary,
+                      if (priceRange != null) ...[
+                        SizedBox(width: 2.w),
+                        Text(
+                          priceRange!,
+                          style: textTheme.bodyLarge?.copyWith(
+                            fontWeight: FontWeight.w700,
+                            color: AppColors.primary,
+                          ),
                         ),
-                      ),
+                      ],
                     ],
                   ),
                   SizedBox(height: 0.5.h),
@@ -174,84 +142,122 @@ class BusinessCardWidget extends StatelessWidget {
                         ),
                       ),
                       SizedBox(width: 2.w),
-                      Row(
-                        children: [
-                          Icon(
-                            Icons.star_rounded,
-                            size: 17.sp,
-                            color: Colors.amber,
+                      if (totalReviews == 0)
+                        Text(
+                          'New',
+                          style: textTheme.bodyMedium?.copyWith(
+                            fontWeight: FontWeight.w600,
+                            color: AppColors.primary,
                           ),
-                          SizedBox(width: 1.w),
-                          Text(
-                            rating.toStringAsFixed(1),
-                            style: textTheme.bodyMedium?.copyWith(
-                              fontWeight: FontWeight.w600,
+                        )
+                      else
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.star_rounded,
+                              size: 17.sp,
+                              color: Colors.amber,
                             ),
-                          ),
-                        ],
-                      ),
+                            SizedBox(width: 1.w),
+                            Text(
+                              totalReviews == null
+                                  ? rating.toStringAsFixed(1)
+                                  : '${rating.toStringAsFixed(1)} ($totalReviews)',
+                              style: textTheme.bodyMedium?.copyWith(
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
                     ],
                   ),
 
                   Divider(color: AppColors.borderLight, thickness: 1),
 
-                  SizedBox(height: 0.5.h),
-                  Row(
-                    children: [
-                      Icon(
-                        Icons.location_on_outlined,
-                        size: 15.sp,
-                        color: AppColors.textSecondary,
-                      ),
-                      SizedBox(width: 1.w),
-                      Expanded(
-                        child: Text(
-                          '$address • $distance',
-                          style: textTheme.bodySmall?.copyWith(
-                            color: AppColors.textSecondary,
-                          ),
-                          maxLines: 1,
-                          overflow: TextOverflow.ellipsis,
-                        ),
-                      ),
-                    ],
-                  ),
-                  SizedBox(height: 1.h),
-                  Container(
-                    padding: EdgeInsets.symmetric(
-                      horizontal: 2.5.w,
-                      vertical: 0.7.h,
-                    ),
-                    decoration: BoxDecoration(
-                      color: AppColors.blue.withOpacity(0.1),
-                      borderRadius: BorderRadius.circular(radius),
-                    ),
-                    child: Row(
-                      mainAxisSize: MainAxisSize.min,
+                  if (location.isNotEmpty) ...[
+                    SizedBox(height: 0.5.h),
+                    Row(
                       children: [
                         Icon(
-                          Icons.access_time_rounded,
+                          Icons.location_on_outlined,
                           size: 15.sp,
-                          color: AppColors.blue,
+                          color: AppColors.textSecondary,
                         ),
                         SizedBox(width: 1.w),
-                        Text(
-                          '$waitMinutes MIN WAIT',
-                          style: textTheme.bodySmall?.copyWith(
-                            fontSize: 12.sp,
-                            fontWeight: FontWeight.w600,
-                            color: AppColors.blue,
+                        Expanded(
+                          child: Text(
+                            location,
+                            style: textTheme.bodySmall?.copyWith(
+                              color: AppColors.textSecondary,
+                            ),
+                            maxLines: 1,
+                            overflow: TextOverflow.ellipsis,
                           ),
                         ),
                       ],
                     ),
-                  ),
+                  ],
+                  if (waitMinutes != null) ...[
+                    SizedBox(height: 1.h),
+                    Container(
+                      padding: EdgeInsets.symmetric(
+                        horizontal: 2.5.w,
+                        vertical: 0.7.h,
+                      ),
+                      decoration: BoxDecoration(
+                        color: AppColors.blue.withOpacity(0.1),
+                        borderRadius: BorderRadius.circular(radius),
+                      ),
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          Icon(
+                            Icons.access_time_rounded,
+                            size: 15.sp,
+                            color: AppColors.blue,
+                          ),
+                          SizedBox(width: 1.w),
+                          Text(
+                            '$waitMinutes MIN WAIT',
+                            style: textTheme.bodySmall?.copyWith(
+                              fontSize: 12.sp,
+                              fontWeight: FontWeight.w600,
+                              color: AppColors.blue,
+                            ),
+                          ),
+                        ],
+                      ),
+                    ),
+                  ],
                 ],
               ),
             ),
           ],
         ),
       ),
+    );
+  }
+
+  Widget _buildImage() {
+    Widget placeholder() => Container(
+      width: double.infinity,
+      height: 20.h,
+      color: AppColors.borderLight,
+      child: Icon(
+        Icons.storefront_outlined,
+        size: 28.sp,
+        color: AppColors.textSecondary,
+      ),
+    );
+
+    final url = imageUrl;
+    if (url == null) return placeholder();
+    return Image.network(
+      url,
+      width: double.infinity,
+      height: 20.h,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder(),
     );
   }
 }

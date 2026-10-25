@@ -46,6 +46,9 @@ class ApiEndpoints {
   static const String applyPromoCode = "v1/customer/cart/promo";
   static const String removePromoCode = "v1/customer/cart/promo";
 
+  //====================Businesses====================
+  static const String getBusinesses = "v1/customer/businesses";
+
   //====================Categories====================
   static const String getCategories = "v1/categories";
 

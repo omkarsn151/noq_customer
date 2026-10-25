@@ -4,6 +4,7 @@ import 'package:noq/features/auth/verify_otp/presentation/screens/otp_verificati
 import 'package:noq/features/auth/register/presentation/screens/register_screen.dart';
 import 'package:noq/features/booking_detials/presentation/screens/booking_details_screen.dart';
 import 'package:noq/features/bookings/presentation/screens/bookings_screen.dart';
+import 'package:noq/features/business_list/presentation/screens/business_list_screen.dart';
 import 'package:noq/features/business_details/presentation/screen/business_details_screen.dart';
 import 'package:noq/features/cart/presentation/screens/cart_screen.dart';
 import 'package:noq/features/categories/presentation/screens/categories_screen.dart';
@@ -92,6 +93,14 @@ class AppRouter {
       GoRoute(
         path: '/categories',
         builder: (context, state) => const CategoriesScreen(),
+      ),
+
+      GoRoute(
+        path: '/categories/:categoryId/businesses',
+        builder: (context, state) => BusinessListScreen(
+          categoryId: state.pathParameters['categoryId']!,
+          categoryName: state.extra as String? ?? 'Businesses',
+        ),
       ),
 
       // Bottom nav shell

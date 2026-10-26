@@ -41,16 +41,20 @@ class DateTimeUtils {
   ];
 
   /// Booking list label in the device's local timezone, e.g. `Today, 04:00 PM`,
-  /// `Tomorrow, 06:00 PM` or `Jun 09, 07:00 PM`.
-  static String formatBookingDateTime(DateTime dateTime) {
+  /// `Tomorrow, 06:00 PM` or `Jun 09, 07:00 PM`. With [relative] off the date
+  /// is always written out, which suits the history tabs (Past, Cancelled).
+  static String formatBookingDateTime(
+    DateTime dateTime, {
+    bool relative = true,
+  }) {
     final local = dateTime.toLocal();
     final date = toIsoDate(local);
 
     final String dayLabel;
-    if (date == todayIsoDate()) {
+    if (relative && date == todayIsoDate()) {
       dayLabel = 'Today';
-    } else if (date ==
-        toIsoDate(DateTime.now().add(const Duration(days: 1)))) {
+    } else if (relative &&
+        date == toIsoDate(DateTime.now().add(const Duration(days: 1)))) {
       dayLabel = 'Tomorrow';
     } else {
       dayLabel =

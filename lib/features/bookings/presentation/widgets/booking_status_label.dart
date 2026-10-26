@@ -1,69 +1,61 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/bookings/data/booking_tone.dart';
 
-/// Icon + label pair for a booking's status. The API sends a free-form string,
-/// so unknown values fall back to a neutral style rather than throwing.
+/// Icon + label pair for a booking's status. [label] is printed as given and
+/// [tone] alone picks the colour, so the list and Booking Details agree.
 class BookingStatusLabel extends StatelessWidget {
-  final String status;
+  final String label;
+  final BookingTone tone;
 
-  const BookingStatusLabel({super.key, required this.status});
+  const BookingStatusLabel({
+    super.key,
+    required this.label,
+    required this.tone,
+  });
+
+  /// For responses that only carry a raw `status` (e.g. the booking just
+  /// created). Uses the same wording the server sends as `status_label`.
+  factory BookingStatusLabel.fromStatus(String status, {Key? key}) {
+    final (label, tone) = switch (status.toLowerCase()) {
+      'pending' => ('Pending', BookingTone.info),
+      'confirmed' => ('Confirmed', BookingTone.success),
+      'in_progress' => ('In progress', BookingTone.info),
+      'completed' => ('Completed', BookingTone.success),
+      'no_show' => ('Missed', BookingTone.warning),
+      'cancelled' || 'canceled' => ('Cancelled', BookingTone.danger),
+      'rejected' => ('Declined', BookingTone.danger),
+      'dismissed' => ('Expired', BookingTone.warning),
+      _ => (_titleCase(status), BookingTone.info),
+    };
+    return BookingStatusLabel(key: key, label: label, tone: tone);
+  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final style = _styleFor(status);
+    final (icon, color) = switch (tone) {
+      BookingTone.success => (Icons.check_circle_rounded, AppColors.success),
+      BookingTone.info => (Icons.access_time_rounded, AppColors.blue),
+      BookingTone.warning => (Icons.error_outline_rounded, AppColors.orange),
+      BookingTone.danger => (Icons.cancel_rounded, AppColors.error),
+    };
 
     return Row(
       mainAxisSize: MainAxisSize.min,
       children: [
-        Icon(style.icon, size: 15.sp, color: style.color),
+        Icon(icon, size: 15.sp, color: color),
         SizedBox(width: 1.w),
         Text(
-          style.label,
+          label,
           style: textTheme.bodySmall?.copyWith(
-            color: style.color,
+            color: color,
             fontWeight: FontWeight.w600,
           ),
         ),
       ],
     );
-  }
-
-  _StatusStyle _styleFor(String status) {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return _StatusStyle(
-          Icons.access_time_rounded,
-          AppColors.primary,
-          'Pending',
-        );
-      case 'confirmed':
-        return _StatusStyle(
-          Icons.check_circle_rounded,
-          AppColors.success,
-          'Confirmed',
-        );
-      case 'completed':
-        return _StatusStyle(
-          Icons.check_circle_rounded,
-          AppColors.blue,
-          'Completed',
-        );
-      case 'cancelled':
-      case 'canceled':
-        return _StatusStyle(
-          Icons.cancel_rounded,
-          AppColors.error,
-          'Cancelled',
-        );
-      default:
-        return _StatusStyle(
-          Icons.info_outline_rounded,
-          AppColors.textSecondary,
-          _titleCase(status),
-        );
-    }
   }
 
   static String _titleCase(String value) {
@@ -75,12 +67,4 @@ class BookingStatusLabel extends StatelessWidget {
         .map((word) => word[0].toUpperCase() + word.substring(1).toLowerCase())
         .join(' ');
   }
-}
-
-class _StatusStyle {
-  final IconData icon;
-  final Color color;
-  final String label;
-
-  const _StatusStyle(this.icon, this.color, this.label);
 }

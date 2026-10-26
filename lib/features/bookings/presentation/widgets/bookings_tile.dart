@@ -6,6 +6,7 @@ import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
 import 'package:noq/features/bookings/data/booking_model.dart';
+import 'package:noq/features/bookings/data/booking_tab.dart';
 import 'package:noq/features/bookings/presentation/widgets/booking_status_label.dart';
 
 class BookingsTile extends StatelessWidget {
@@ -25,10 +26,15 @@ class BookingsTile extends StatelessWidget {
     AppSnackbar.info(context, 'Cancelling bookings is not available yet.');
   }
 
+  void _onReview(BuildContext context) {
+    AppSnackbar.info(context, 'Reviews are not available yet.');
+  }
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
     final startsAt = booking.schedule.startsAt;
+    final servicesLabel = booking.servicesLabel;
 
     return InkWell(
       borderRadius: BorderRadius.circular(16.sp),
@@ -47,12 +53,7 @@ class BookingsTile extends StatelessWidget {
               children: [
                 ClipRRect(
                   borderRadius: BorderRadius.circular(12.sp),
-                  child: Image.asset(
-                    AppAssets.businessThumbnail,
-                    width: 12.w,
-                    height: 12.w,
-                    fit: BoxFit.cover,
-                  ),
+                  child: _thumbnail(),
                 ),
                 SizedBox(width: 3.w),
                 Expanded(
@@ -65,90 +66,41 @@ class BookingsTile extends StatelessWidget {
                           fontWeight: FontWeight.w700,
                         ),
                       ),
-                      SizedBox(height: 0.3.h),
-                      Text(
-                        'Haircut, Hair Color',
-                        style: textTheme.bodySmall?.copyWith(
-                          color: AppColors.textSecondary,
+                      if (servicesLabel.isNotEmpty) ...[
+                        SizedBox(height: 0.3.h),
+                        Text(
+                          servicesLabel,
+                          maxLines: 1,
+                          overflow: TextOverflow.ellipsis,
+                          style: textTheme.bodySmall?.copyWith(
+                            color: AppColors.textSecondary,
+                          ),
                         ),
-                      ),
+                      ],
+                      if (booking.booking.hasPendingReschedule) ...[
+                        SizedBox(height: 0.5.h),
+                        Row(
+                          children: [
+                            Icon(
+                              Icons.schedule,
+                              size: 13.sp,
+                              color: AppColors.orange,
+                            ),
+                            SizedBox(width: 1.w),
+                            Text(
+                              'Reschedule requested',
+                              style: textTheme.bodySmall?.copyWith(
+                                color: AppColors.orange,
+                                fontWeight: FontWeight.w600,
+                              ),
+                            ),
+                          ],
+                        ),
+                      ],
                     ],
                   ),
                 ),
-                if (booking.actions.hasAny)
-                  PopupMenuButton<String>(
-                    padding: EdgeInsets.zero,
-                    shape: RoundedRectangleBorder(
-                      borderRadius: BorderRadius.circular(14.sp),
-                    ),
-                    menuPadding: EdgeInsets.symmetric(
-                      horizontal: 2.w,
-                      vertical: 0.5.h,
-                    ),
-                    color: AppColors.background,
-                    surfaceTintColor: AppColors.background,
-                    elevation: 4,
-                    shadowColor: AppColors.borderLight,
-                    position: PopupMenuPosition.under,
-                    icon: Icon(
-                      Icons.more_vert,
-                      size: 18.sp,
-                      color: AppColors.textPrimary,
-                    ),
-
-                    onSelected: (value) {
-                      if (value == 'reschedule') {
-                        _onReschedule(context);
-                      } else if (value == 'cancel') {
-                        _onCancel(context);
-                      }
-                    },
-                    itemBuilder: (context) => [
-                      if (booking.actions.canReschedule)
-                        PopupMenuItem(
-                          value: 'reschedule',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.calendar_month_outlined,
-                                size: 16.sp,
-                                color: AppColors.textPrimary,
-                              ),
-                              SizedBox(width: 2.w),
-                              Text(
-                                'Reschedule Booking',
-                                style: Theme.of(context).textTheme.bodySmall,
-                              ),
-                            ],
-                          ),
-                        ),
-                      if (booking.actions.canReschedule &&
-                          booking.actions.canCancel)
-                        const PopupMenuDivider(
-                          height: 1,
-                          color: AppColors.border,
-                        ),
-                      if (booking.actions.canCancel)
-                        PopupMenuItem(
-                          value: 'cancel',
-                          child: Row(
-                            children: [
-                              Icon(
-                                Icons.cancel_outlined,
-                                size: 16.sp,
-                                color: AppColors.error,
-                              ),
-                              SizedBox(width: 2.w),
-                              Text(
-                                'Cancel Booking',
-                                style: Theme.of(context).textTheme.bodySmall
-                                    ?.copyWith(color: AppColors.error),
-                              ),
-                            ],
-                          ),
-                        ),
-                    ],
-                  ),
+                if (booking.hasMenu) _menu(context),
               ],
             ),
             SizedBox(height: 1.5.h),
@@ -168,18 +120,131 @@ class BookingsTile extends StatelessWidget {
                     Text(
                       startsAt == null
                           ? '--'
-                          : DateTimeUtils.formatBookingDateTime(startsAt),
+                          : DateTimeUtils.formatBookingDateTime(
+                              startsAt,
+                              // Today/Tomorrow only reads well on the to-do
+                              // list; history tabs write the date out.
+                              relative:
+                                  booking.booking.tab ==
+                                  BookingTab.upcoming.value,
+                            ),
                       style: textTheme.bodySmall?.copyWith(
                         color: AppColors.textSecondary,
                       ),
                     ),
                   ],
                 ),
-                BookingStatusLabel(status: booking.booking.status),
+                BookingStatusLabel(
+                  label: booking.booking.statusLabel,
+                  tone: booking.booking.tone,
+                ),
               ],
             ),
           ],
         ),
+      ),
+    );
+  }
+
+  Widget _thumbnail() {
+    final url = booking.business.thumbnailUrl;
+    if (url == null || url.isEmpty) return _fallbackThumbnail();
+    return Image.network(
+      url,
+      width: 12.w,
+      height: 12.w,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => _fallbackThumbnail(),
+    );
+  }
+
+  Widget _fallbackThumbnail() {
+    return Image.asset(
+      AppAssets.businessThumbnail,
+      width: 12.w,
+      height: 12.w,
+      fit: BoxFit.cover,
+    );
+  }
+
+  Widget _menu(BuildContext context) {
+    final items = <PopupMenuEntry<String>>[
+      if (booking.showReschedule)
+        _menuItem(
+          context,
+          value: 'reschedule',
+          icon: Icons.calendar_month_outlined,
+          label: 'Reschedule Booking',
+        ),
+      if (booking.actions.canReview)
+        _menuItem(
+          context,
+          value: 'review',
+          icon: Icons.star_outline_rounded,
+          label: booking.booking.hasReviewed ? 'Edit review' : 'Leave a review',
+        ),
+      if (booking.showCancel)
+        _menuItem(
+          context,
+          value: 'cancel',
+          icon: Icons.cancel_outlined,
+          label: 'Cancel Booking',
+          color: AppColors.error,
+        ),
+    ];
+
+    return PopupMenuButton<String>(
+      padding: EdgeInsets.zero,
+      shape: RoundedRectangleBorder(
+        borderRadius: BorderRadius.circular(14.sp),
+      ),
+      menuPadding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
+      color: AppColors.background,
+      surfaceTintColor: AppColors.background,
+      elevation: 4,
+      shadowColor: AppColors.borderLight,
+      position: PopupMenuPosition.under,
+      icon: Icon(Icons.more_vert, size: 18.sp, color: AppColors.textPrimary),
+      onSelected: (value) {
+        switch (value) {
+          case 'reschedule':
+            _onReschedule(context);
+          case 'review':
+            _onReview(context);
+          case 'cancel':
+            _onCancel(context);
+        }
+      },
+      itemBuilder: (context) => [
+        for (var i = 0; i < items.length; i++) ...[
+          if (i > 0) const PopupMenuDivider(height: 1, color: AppColors.border),
+          items[i],
+        ],
+      ],
+    );
+  }
+
+  PopupMenuItem<String> _menuItem(
+    BuildContext context, {
+    required String value,
+    required IconData icon,
+    required String label,
+    Color color = AppColors.textPrimary,
+  }) {
+    final textStyle = Theme.of(context).textTheme.bodySmall;
+    return PopupMenuItem(
+      value: value,
+      child: Row(
+        children: [
+          Icon(icon, size: 16.sp, color: color),
+          SizedBox(width: 2.w),
+          Text(
+            label,
+            style: color == AppColors.textPrimary
+                ? textStyle
+                : textStyle?.copyWith(color: color),
+          ),
+        ],
       ),
     );
   }

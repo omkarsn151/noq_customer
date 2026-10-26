@@ -28,7 +28,7 @@ class BookingSuccessScreen extends StatelessWidget {
             children: [
               Image.asset(AppAssets.paymentSuccess),
               SizedBox(height: 2.h),
-              BookingStatusLabel(status: booking.status),
+              BookingStatusLabel.fromStatus(booking.status),
               SizedBox(height: 1.h),
               Text(
                 booking.message,

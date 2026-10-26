@@ -98,6 +98,7 @@ class _BusinessDetailsBody extends StatelessWidget {
           if (details.reviews.isNotEmpty) ...[
             SizedBox(height: 4.h),
             CustomerReviewsSection(
+              businessId: details.id,
               reviews: details.reviews,
               rating: details.rating,
             ),

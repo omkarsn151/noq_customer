@@ -13,6 +13,7 @@ import 'package:noq/features/home/presentation/screens/home_screen.dart';
 import 'package:noq/features/main_screen/main_screen.dart';
 import 'package:noq/features/privacy/privacy_policy_screen.dart';
 import 'package:noq/features/profile/presentation/screens/profile_screen.dart';
+import 'package:noq/features/reviews/presentation/screens/reviews_screen.dart';
 import 'package:noq/features/search/presentation/screens/search_screen.dart';
 import 'package:noq/features/service_list/presentation/screens/service_list_screen.dart';
 import 'package:noq/features/service/presentation/screens/service_details_screen.dart';
@@ -58,6 +59,11 @@ class AppRouter {
         builder: (context, state) => BusinessDetailsScreen(
           businessId: state.pathParameters['businessId']!,
         ),
+      ),
+      GoRoute(
+        path: '/business-details/:businessId/reviews',
+        builder: (context, state) =>
+            ReviewsScreen(businessId: state.pathParameters['businessId']!),
       ),
 
       GoRoute(

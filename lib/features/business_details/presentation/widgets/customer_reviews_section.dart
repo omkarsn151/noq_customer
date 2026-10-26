@@ -1,16 +1,20 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
 import 'package:noq/features/business_details/data/business_details_model.dart';
 
 class CustomerReviewsSection extends StatelessWidget {
+  final String businessId;
+
   /// Preview only; the full list is a separate screen.
   final List<BusinessReviewModel> reviews;
   final BusinessDetailsRating rating;
 
   const CustomerReviewsSection({
     super.key,
+    required this.businessId,
     required this.reviews,
     required this.rating,
   });
@@ -57,11 +61,17 @@ class CustomerReviewsSection extends StatelessWidget {
             ),
           ],
           Center(
-            child: Text(
-              'Read all $total reviews',
-              style: textTheme.bodyMedium?.copyWith(
-                color: AppColors.primary,
-                fontWeight: FontWeight.w700,
+            child: InkWell(
+              onTap: () => context.push('/business-details/$businessId/reviews'),
+              child: Padding(
+                padding: EdgeInsets.symmetric(vertical: 0.5.h, horizontal: 2.w),
+                child: Text(
+                  'Read all $total reviews',
+                  style: textTheme.bodyMedium?.copyWith(
+                    color: AppColors.primary,
+                    fontWeight: FontWeight.w700,
+                  ),
+                ),
               ),
             ),
           ),

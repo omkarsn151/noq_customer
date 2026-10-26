@@ -27,6 +27,8 @@ import 'package:noq/features/promo/bloc/promo_bloc.dart';
 import 'package:noq/features/promo/repository/promo_repository.dart';
 import 'package:noq/features/reviews/bloc/reviews_bloc.dart';
 import 'package:noq/features/reviews/repository/reviews_repository.dart';
+import 'package:noq/features/service_list/bloc/service_list_bloc.dart';
+import 'package:noq/features/service_list/repository/service_list_repository.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
 import 'package:noq/features/slot/repository/slot_repository.dart';
 
@@ -70,6 +72,9 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ReviewsBloc>(
           create: (_) => ReviewsBloc(ReviewsRepository()),
+        ),
+        BlocProvider<ServiceListBloc>(
+          create: (_) => ServiceListBloc(ServiceListRepository()),
         ),
       ],
       child: Sizer(

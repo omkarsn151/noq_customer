@@ -36,6 +36,8 @@ class ServiceTile extends StatelessWidget {
                     style: textTheme.bodySmall?.copyWith(
                       color: AppColors.textSecondary,
                     ),
+                    maxLines: 3,
+                    overflow: TextOverflow.ellipsis,
                   ),
                 ],
                 SizedBox(height: 0.5.h),

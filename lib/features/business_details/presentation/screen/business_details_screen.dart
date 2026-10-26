@@ -93,7 +93,10 @@ class _BusinessDetailsBody extends StatelessWidget {
           ),
           if (details.services.items.isNotEmpty) ...[
             SizedBox(height: 4.h),
-            PopularServicesSection(services: details.services.items),
+            PopularServicesSection(
+              businessId: details.id,
+              services: details.services.items,
+            ),
           ],
           if (details.reviews.isNotEmpty) ...[
             SizedBox(height: 4.h),

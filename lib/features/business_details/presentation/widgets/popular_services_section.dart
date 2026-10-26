@@ -8,9 +8,14 @@ import 'package:noq/features/business_details/presentation/widgets/service_tile.
 /// Drawn the same whether the shop picked these or the server auto-selected
 /// them — the customer must not be able to tell the difference.
 class PopularServicesSection extends StatelessWidget {
+  final String businessId;
   final List<BusinessServiceModel> services;
 
-  const PopularServicesSection({super.key, required this.services});
+  const PopularServicesSection({
+    super.key,
+    required this.businessId,
+    required this.services,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -30,7 +35,7 @@ class PopularServicesSection extends StatelessWidget {
                 child: Text('Popular Services', style: textTheme.titleMedium),
               ),
               InkWell(
-                onTap: () => context.push('/service-list'),
+                onTap: () => context.push('/business-details/$businessId/services'),
                 child: Text(
                   'See all',
                   style: textTheme.bodyMedium?.copyWith(

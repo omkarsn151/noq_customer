@@ -1,11 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/business_details/data/business_details_model.dart';
 import 'package:noq/features/business_details/presentation/widgets/service_tile.dart';
 
 class ServiceCategorySection extends StatefulWidget {
   final String title;
-  final List<ServiceItem> services;
+  final List<BusinessServiceModel> services;
   final bool initiallyExpanded;
 
   const ServiceCategorySection({

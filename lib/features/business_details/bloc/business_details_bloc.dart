@@ -22,7 +22,11 @@ class BusinessDetailsBloc
       final details = await _repository.getBusinessDetails(event.businessId);
       emit(BusinessDetailsLoaded(details: details));
     } on ApiException catch (e) {
-      emit(BusinessDetailsFailure(message: e.message));
+      if (e.code == 'CUSTOMER_BUSINESS_NOT_FOUND') {
+        emit(BusinessDetailsNotFound(businessId: event.businessId));
+      } else {
+        emit(BusinessDetailsFailure(message: e.message));
+      }
     } catch (e) {
       emit(BusinessDetailsFailure(message: e.toString()));
     }

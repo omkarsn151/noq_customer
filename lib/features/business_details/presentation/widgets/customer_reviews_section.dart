@@ -1,53 +1,26 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
-
-class _ReviewItem {
-  final String avatar;
-  final String name;
-  final String timeAgo;
-  final int rating;
-  final String comment;
-  final int helpfulCount;
-
-  const _ReviewItem({
-    required this.avatar,
-    required this.name,
-    required this.timeAgo,
-    required this.rating,
-    required this.comment,
-    required this.helpfulCount,
-  });
-}
-
-const _reviews = [
-  _ReviewItem(
-    avatar: AppAssets.category1,
-    name: 'Sarah Jenkins',
-    timeAgo: '2 days ago',
-    rating: 4,
-    comment:
-        'Absolutely loved my experience here. The live wait time estimation was exactly accurate—I joined the queue from home and walked right into the chair. The staff is incredibly professional and the fade was top-notch. Highly recommend!',
-    helpfulCount: 12,
-  ),
-  _ReviewItem(
-    avatar: AppAssets.category2,
-    name: 'Michael Chen',
-    timeAgo: '1 week ago',
-    rating: 3,
-    comment:
-        "Great service overall. The stylist really took the time to understand what I wanted. The only downside was parking in the area, but the app's wait time feature made it so I didn't have to sit in the lobby forever.",
-    helpfulCount: 3,
-  ),
-];
+import 'package:noq/core/utils/date_time_utils.dart';
+import 'package:noq/features/business_details/data/business_details_model.dart';
 
 class CustomerReviewsSection extends StatelessWidget {
-  const CustomerReviewsSection({super.key});
+  /// Preview only; the full list is a separate screen.
+  final List<BusinessReviewModel> reviews;
+  final BusinessDetailsRating rating;
+
+  const CustomerReviewsSection({
+    super.key,
+    required this.reviews,
+    required this.rating,
+  });
 
   @override
   Widget build(BuildContext context) {
+    if (reviews.isEmpty) return const SizedBox.shrink();
+
     final textTheme = Theme.of(context).textTheme;
+    final total = rating.totalReviews;
 
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.w),
@@ -61,14 +34,14 @@ class CustomerReviewsSection extends StatelessWidget {
               Icon(Icons.star_rounded, size: 18.sp, color: Colors.amber),
               SizedBox(width: 1.w),
               Text(
-                '4.8',
+                rating.isNew ? 'New' : rating.average.toStringAsFixed(1),
                 style: textTheme.bodyLarge?.copyWith(
                   fontWeight: FontWeight.w700,
                 ),
               ),
               SizedBox(width: 1.5.w),
               Text(
-                '(124 ratings)',
+                '($total ${total == 1 ? 'rating' : 'ratings'})',
                 style: textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                 ),
@@ -76,7 +49,7 @@ class CustomerReviewsSection extends StatelessWidget {
             ],
           ),
           SizedBox(height: 2.5.h),
-          for (final review in _reviews) ...[
+          for (final review in reviews) ...[
             _ReviewTile(review: review),
             Padding(
               padding: EdgeInsets.symmetric(vertical: 1.5.h),
@@ -85,7 +58,7 @@ class CustomerReviewsSection extends StatelessWidget {
           ],
           Center(
             child: Text(
-              'Read all 124 reviews',
+              'Read all $total reviews',
               style: textTheme.bodyMedium?.copyWith(
                 color: AppColors.primary,
                 fontWeight: FontWeight.w700,
@@ -99,44 +72,39 @@ class CustomerReviewsSection extends StatelessWidget {
 }
 
 class _ReviewTile extends StatelessWidget {
-  final _ReviewItem review;
+  final BusinessReviewModel review;
 
   const _ReviewTile({required this.review});
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
+    final createdAt = review.createdAt;
 
     return Column(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
         Row(
           children: [
-            ClipOval(
-              child: Image.asset(
-                review.avatar,
-                width: 12.w,
-                height: 12.w,
-                fit: BoxFit.cover,
-              ),
-            ),
+            _Avatar(name: review.reviewerName, url: review.reviewerPhotoUrl),
             SizedBox(width: 3.w),
             Expanded(
               child: Column(
                 crossAxisAlignment: CrossAxisAlignment.start,
                 children: [
                   Text(
-                    review.name,
+                    review.reviewerName,
                     style: textTheme.bodyLarge?.copyWith(
                       fontWeight: FontWeight.w700,
                     ),
                   ),
-                  Text(
-                    review.timeAgo,
-                    style: textTheme.bodySmall?.copyWith(
-                      color: AppColors.textSecondary,
+                  if (createdAt != null)
+                    Text(
+                      DateTimeUtils.timeAgo(createdAt),
+                      style: textTheme.bodySmall?.copyWith(
+                        color: AppColors.textSecondary,
+                      ),
                     ),
-                  ),
                 ],
               ),
             ),
@@ -155,10 +123,47 @@ class _ReviewTile extends StatelessWidget {
             ),
           ],
         ),
-        SizedBox(height: 1.h),
-        Text(review.comment, style: textTheme.bodyMedium),
+        if (review.comment.isNotEmpty) ...[
+          SizedBox(height: 1.h),
+          Text(review.comment, style: textTheme.bodyMedium),
+        ],
         SizedBox(height: 1.h),
       ],
+    );
+  }
+}
+
+class _Avatar extends StatelessWidget {
+  final String name;
+  final String? url;
+
+  const _Avatar({required this.name, required this.url});
+
+  @override
+  Widget build(BuildContext context) {
+    final size = 12.w;
+    Widget initial() => CircleAvatar(
+      radius: size / 2,
+      backgroundColor: AppColors.primaryLight,
+      child: Text(
+        name.isEmpty ? '?' : name[0].toUpperCase(),
+        style: Theme.of(context).textTheme.bodyLarge?.copyWith(
+          color: AppColors.primary,
+          fontWeight: FontWeight.w700,
+        ),
+      ),
+    );
+
+    final photoUrl = url;
+    if (photoUrl == null) return initial();
+    return ClipOval(
+      child: Image.network(
+        photoUrl,
+        width: size,
+        height: size,
+        fit: BoxFit.cover,
+        errorBuilder: (context, error, stackTrace) => initial(),
+      ),
     );
   }
 }

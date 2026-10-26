@@ -1,10 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
 class BusinessHeaderSection extends StatelessWidget {
-  const BusinessHeaderSection({super.key});
+  /// Null when the shop has no hero picture.
+  final String? heroUrl;
+
+  final bool isFavorited;
+
+  const BusinessHeaderSection({
+    super.key,
+    required this.heroUrl,
+    required this.isFavorited,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,12 +23,7 @@ class BusinessHeaderSection extends StatelessWidget {
             bottomLeft: Radius.circular(25.sp),
             bottomRight: Radius.circular(25.sp),
           ),
-          child: Image.asset(
-            AppAssets.businessThumbnail,
-            width: double.infinity,
-            height: 30.h,
-            fit: BoxFit.cover,
-          ),
+          child: _buildImage(),
         ),
         Positioned(
           top: 6.h,
@@ -37,14 +40,39 @@ class BusinessHeaderSection extends StatelessWidget {
             children: [
               const _CircleOverlayButton(icon: Icons.send_rounded),
               SizedBox(width: 2.w),
-              const _CircleOverlayButton(
-                icon: Icons.favorite_rounded,
-                iconColor: AppColors.error,
+              _CircleOverlayButton(
+                icon: isFavorited
+                    ? Icons.favorite_rounded
+                    : Icons.favorite_border_rounded,
+                iconColor: isFavorited ? AppColors.error : null,
               ),
             ],
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImage() {
+    Widget placeholder() => Container(
+      width: double.infinity,
+      height: 30.h,
+      color: AppColors.borderLight,
+      child: Icon(
+        Icons.storefront_outlined,
+        size: 36.sp,
+        color: AppColors.textSecondary,
+      ),
+    );
+
+    final url = heroUrl;
+    if (url == null) return placeholder();
+    return Image.network(
+      url,
+      width: double.infinity,
+      height: 30.h,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder(),
     );
   }
 }

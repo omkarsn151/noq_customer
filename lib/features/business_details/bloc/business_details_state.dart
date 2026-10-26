@@ -33,3 +33,14 @@ class BusinessDetailsFailure extends BusinessDetailsState {
   @override
   List<Object?> get props => [message];
 }
+
+/// The shop is not public (wrong id, in review, suspended or deleted).
+/// Leave the screen; do not retry.
+class BusinessDetailsNotFound extends BusinessDetailsState {
+  final String businessId;
+
+  const BusinessDetailsNotFound({required this.businessId});
+
+  @override
+  List<Object?> get props => [businessId];
+}

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
@@ -112,6 +113,8 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
                         distance: item.distanceLabel,
                         waitMinutes: item.waitMinutes,
                         isFavorite: item.isFavorited,
+                        onTap: () =>
+                            context.push('/business-details/${item.id}'),
                       );
                     },
                   ),

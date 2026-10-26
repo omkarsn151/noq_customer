@@ -25,6 +25,24 @@ class DateTimeUtils {
     return '${dateTime.year}-$month-$day';
   }
 
+  /// Relative age label, e.g. `just now`, `5 min ago`, `2 days ago`,
+  /// `3 weeks ago`, falling back to `Jun 09, 2026` after a year.
+  static String timeAgo(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    final diff = DateTime.now().difference(local);
+
+    String plural(int n, String unit) => '$n $unit${n == 1 ? '' : 's'} ago';
+
+    if (diff.inMinutes < 1) return 'just now';
+    if (diff.inHours < 1) return '${diff.inMinutes} min ago';
+    if (diff.inDays < 1) return plural(diff.inHours, 'hour');
+    if (diff.inDays < 7) return plural(diff.inDays, 'day');
+    if (diff.inDays < 30) return plural(diff.inDays ~/ 7, 'week');
+    if (diff.inDays < 365) return plural(diff.inDays ~/ 30, 'month');
+    return '${_monthAbbr[local.month - 1]} '
+        '${local.day.toString().padLeft(2, '0')}, ${local.year}';
+  }
+
   static const List<String> _monthAbbr = [
     'Jan',
     'Feb',

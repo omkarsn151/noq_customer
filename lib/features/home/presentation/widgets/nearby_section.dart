@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/home/data/home_model.dart';
@@ -51,6 +52,7 @@ class NearbySection extends StatelessWidget {
               distance: item.distanceLabel,
               waitMinutes: item.waitMinutes,
               isFavorite: item.isFavorited,
+              onTap: () => context.push('/business-details/${item.id}'),
             ),
             SizedBox(height: 2.h),
           ],

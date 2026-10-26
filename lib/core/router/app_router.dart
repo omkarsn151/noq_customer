@@ -54,8 +54,10 @@ class AppRouter {
       ),
       GoRoute(path: '/tnc', builder: (context, state) => const TncScreen()),
       GoRoute(
-        path: '/business-details',
-        builder: (context, state) => const BusinessDetailsScreen(),
+        path: '/business-details/:businessId',
+        builder: (context, state) => BusinessDetailsScreen(
+          businessId: state.pathParameters['businessId']!,
+        ),
       ),
 
       GoRoute(

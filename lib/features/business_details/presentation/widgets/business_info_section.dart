@@ -70,20 +70,12 @@ class BusinessInfoSection extends StatelessWidget {
               const _CircleIconButton(icon: Icons.chat_bubble_outline_rounded),
             ],
           ),
-          Row(
-            children: [
-              Expanded(
-                child: Text(
-                  business.servicesLabel,
-                  style: textTheme.bodyMedium?.copyWith(
-                    color: AppColors.textSecondary,
-                  ),
-                  maxLines: 1,
-                  overflow: TextOverflow.ellipsis,
-                ),
-              ),
-              const _DetailsButton(),
-            ],
+          SizedBox(width: 1.h),
+          Text(
+            business.servicesLabel,
+            style: textTheme.bodyMedium?.copyWith(
+              color: AppColors.textSecondary,
+            ),
           ),
           SizedBox(height: 1.5.h),
           Row(
@@ -127,33 +119,6 @@ class _CircleIconButton extends StatelessWidget {
           border: Border.all(color: AppColors.borderLight),
         ),
         child: Icon(icon, size: 16.sp, color: AppColors.primary),
-      ),
-    );
-  }
-}
-
-class _DetailsButton extends StatelessWidget {
-  const _DetailsButton();
-
-  @override
-  Widget build(BuildContext context) {
-    return Container(
-      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.h),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(20.sp),
-        border: Border.all(color: AppColors.borderLight),
-      ),
-      child: Row(
-        mainAxisSize: MainAxisSize.min,
-        children: [
-          Icon(
-            Icons.info_outline_rounded,
-            size: 14.sp,
-            color: AppColors.textPrimary,
-          ),
-          SizedBox(width: 1.w),
-          Text('Details', style: Theme.of(context).textTheme.bodySmall),
-        ],
       ),
     );
   }

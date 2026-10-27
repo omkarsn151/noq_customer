@@ -10,6 +10,7 @@ class ServiceListBloc extends Bloc<ServiceListEvent, ServiceListState> {
   ServiceListBloc(this._repository) : super(const ServiceListState()) {
     on<ServiceListRequested>(_onRequested);
     on<ServiceListSectionOpened>(_onSectionOpened);
+    on<ServiceListCartChanged>(_onCartChanged);
   }
 
   Future<void> _onRequested(
@@ -26,7 +27,9 @@ class ServiceListBloc extends Bloc<ServiceListEvent, ServiceListState> {
 
     try {
       final sections = await _repository.getSections(event.businessId);
-      emit(state.copyWith(status: ServiceListStatus.success, sections: sections));
+      emit(
+        state.copyWith(status: ServiceListStatus.success, sections: sections),
+      );
     } catch (e) {
       emit(
         state.copyWith(
@@ -106,6 +109,46 @@ class ServiceListBloc extends Bloc<ServiceListEvent, ServiceListState> {
         );
       }
     }
+  }
+
+  /// Re-fetches every loaded section in the background. Sections keep their
+  /// current items (no spinner) and keep them if a re-fetch fails.
+  Future<void> _onCartChanged(
+    ServiceListCartChanged event,
+    Emitter<ServiceListState> emit,
+  ) async {
+    if (state.status != ServiceListStatus.success) return;
+
+    final businessId = state.businessId;
+    final loadedIds = [
+      for (final entry in state.sectionServices.entries)
+        if (entry.value.status == SectionServicesStatus.success) entry.key,
+    ];
+
+    await Future.wait(
+      loadedIds.map((id) async {
+        try {
+          final section = await _repository.getSectionServices(
+            businessId: businessId,
+            subCategoryId: id,
+          );
+          if (state.businessId != businessId) return;
+          emit(
+            state.copyWith(
+              sectionServices: {
+                ...state.sectionServices,
+                id: SectionServices(
+                  status: SectionServicesStatus.success,
+                  items: section.items,
+                ),
+              },
+            ),
+          );
+        } catch (_) {
+          // Keep the old rows; a pull-to-refresh will retry.
+        }
+      }),
+    );
   }
 
   bool _isBusinessNotFound(Object error) =>

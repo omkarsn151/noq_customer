@@ -3,6 +3,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_snackbar.dart';
+import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
+import 'package:noq/features/cart/bloc/add_to_cart_state.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
 import 'package:noq/features/cart/bloc/cart_state.dart';
@@ -26,55 +28,66 @@ class _CartScreenState extends State<CartScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(title: 'Cart', showLeading: false),
-      body: BlocConsumer<CartBloc, CartState>(
-        listenWhen: (previous, current) => current is CartItemRemoveFailure,
-        listener: (context, state) {
-          if (state is CartItemRemoveFailure) {
-            AppSnackbar.error(context, state.message);
-          }
-        },
-        buildWhen: (previous, current) => current is! CartItemRemoveFailure,
-        builder: (context, state) {
-          if (state is CartLoading || state is CartInitial) {
-            return const Center(child: CircularProgressIndicator());
-          }
+      // This tab stays alive, so pick up items added/removed on other screens.
+      body: BlocListener<AddToCartBloc, AddToCartState>(
+        listenWhen: (previous, current) =>
+            current is AddToCartSuccess || current is RemoveFromCartSuccess,
+        listener: (context, state) =>
+            context.read<CartBloc>().add(const CartItemsRequested()),
+        child: _buildCart(),
+      ),
+    );
+  }
 
-          if (state is CartFailure) {
-            return Center(
-              child: Padding(
-                padding: EdgeInsets.symmetric(horizontal: 8.w),
-                child: Text(
-                  state.message,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
-                ),
-              ),
-            );
-          }
+  Widget _buildCart() {
+    return BlocConsumer<CartBloc, CartState>(
+      listenWhen: (previous, current) => current is CartItemRemoveFailure,
+      listener: (context, state) {
+        if (state is CartItemRemoveFailure) {
+          AppSnackbar.error(context, state.message);
+        }
+      },
+      buildWhen: (previous, current) => current is! CartItemRemoveFailure,
+      builder: (context, state) {
+        if (state is CartLoading || state is CartInitial) {
+          return const Center(child: CircularProgressIndicator());
+        }
 
-          final loadedState = state as CartLoaded;
-          final cart = loadedState.cart;
-
-          if (cart.items.isEmpty) {
-            return Center(
+        if (state is CartFailure) {
+          return Center(
+            child: Padding(
+              padding: EdgeInsets.symmetric(horizontal: 8.w),
               child: Text(
-                'Your cart is empty',
+                state.message,
+                textAlign: TextAlign.center,
                 style: Theme.of(context).textTheme.bodyMedium,
               ),
-            );
-          }
-
-          return RefreshIndicator(
-            onRefresh: () async {
-              context.read<CartBloc>().add(const CartItemsRequested());
-            },
-            child: CartContent(
-              cart: cart,
-              removingItemId: loadedState.removingItemId,
             ),
           );
-        },
-      ),
+        }
+
+        final loadedState = state as CartLoaded;
+        final cart = loadedState.cart;
+
+        if (cart.items.isEmpty) {
+          return Center(
+            child: Text(
+              'Your cart is empty',
+              style: Theme.of(context).textTheme.bodyMedium,
+            ),
+          );
+        }
+
+        return RefreshIndicator(
+          onRefresh: () async {
+            context.read<CartBloc>().add(const CartItemsRequested());
+          },
+          child: CartContent(
+            cart: cart,
+            removingItemId: loadedState.removingItemId,
+          ),
+        );
+      },
     );
   }
 }

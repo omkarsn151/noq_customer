@@ -5,8 +5,7 @@ import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
-import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
-import 'package:noq/features/cart/bloc/add_to_cart_state.dart';
+import 'package:noq/features/cart/presentation/cart_change_listener.dart';
 import 'package:noq/features/service/bloc/service_details_bloc.dart';
 import 'package:noq/features/service/bloc/service_details_event.dart';
 import 'package:noq/features/service/bloc/service_details_state.dart';
@@ -48,28 +47,13 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
   bool _isCurrent(ServiceDetailsState state) =>
       state.serviceId == widget.serviceId;
 
-  /// Cart add/remove results for this service only.
-  void _onCartChanged(BuildContext context, AddToCartState state) {
-    switch (state) {
-      case AddToCartSuccess(:final serviceId, :final message) ||
-              RemoveFromCartSuccess(:final serviceId, :final message)
-          when serviceId == widget.serviceId:
-        AppSnackbar.success(context, message);
-        // Re-fetch so is_in_cart / cart_item_id are current for the button.
-        _load();
-      case AddToCartFailure(:final serviceId, :final message) ||
-              RemoveFromCartFailure(:final serviceId, :final message)
-          when serviceId == widget.serviceId:
-        AppSnackbar.error(context, message);
-      default:
-        break;
-    }
-  }
-
   @override
   Widget build(BuildContext context) {
-    return BlocListener<AddToCartBloc, AddToCartState>(
-      listener: _onCartChanged,
+    return CartChangeListener(
+      // Cart add/remove results for this service only.
+      isRelevant: (serviceId) => serviceId == widget.serviceId,
+      // Re-fetch so is_in_cart / cart_item_id are current for the button.
+      onChanged: (_) => _load(),
       child: BlocConsumer<ServiceDetailsBloc, ServiceDetailsState>(
         listenWhen: (previous, current) =>
             _isCurrent(current) && current.status != previous.status,

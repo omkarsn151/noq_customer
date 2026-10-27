@@ -57,10 +57,13 @@ class CartItemTile extends StatelessWidget {
                 style: textTheme.bodySmall?.copyWith(
                   color: AppColors.textSecondary,
                 ),
+                maxLines: 3,
+                overflow: TextOverflow.ellipsis,
               ),
             ],
           ),
         ),
+        SizedBox(width: 2.w),
         Column(
           crossAxisAlignment: CrossAxisAlignment.end,
           children: [

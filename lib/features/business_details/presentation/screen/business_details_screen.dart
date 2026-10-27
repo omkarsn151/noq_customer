@@ -12,6 +12,7 @@ import 'package:noq/features/business_details/presentation/widgets/business_head
 import 'package:noq/features/business_details/presentation/widgets/business_info_section.dart';
 import 'package:noq/features/business_details/presentation/widgets/customer_reviews_section.dart';
 import 'package:noq/features/business_details/presentation/widgets/popular_services_section.dart';
+import 'package:noq/features/cart/presentation/cart_change_listener.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
   final String businessId;
@@ -55,7 +56,17 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
           // The bloc is app-wide, so ignore a previously opened business.
           if (state is BusinessDetailsLoaded &&
               state.details.id == widget.businessId) {
-            return _BusinessDetailsBody(details: state.details);
+            final serviceIds = {
+              for (final service in state.details.services.items) service.id,
+            };
+            return CartChangeListener(
+              isRelevant: serviceIds.contains,
+              // Refresh in place so is_in_cart / cart_item_id stay current.
+              onChanged: (_) => context.read<BusinessDetailsBloc>().add(
+                BusinessDetailsRequested(widget.businessId, silent: true),
+              ),
+              child: _BusinessDetailsBody(details: state.details),
+            );
           }
           if (state is BusinessDetailsFailure) {
             return _BusinessDetailsMessage(

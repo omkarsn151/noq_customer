@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_button.dart';
 import 'package:noq/core/utils/app_colors.dart';
@@ -13,21 +14,17 @@ class ServiceBottomBar extends StatelessWidget {
 
   const ServiceBottomBar({super.key, required this.service});
 
-  bool _isBusy(AddToCartState state) => switch (state) {
-    AddToCartLoading(:final serviceId) => serviceId == service.id,
-    RemoveFromCartLoading(:final serviceId) => serviceId == service.id,
-    _ => false,
-  };
+  bool _isBusy(AddToCartState state) =>
+      state is AddToCartLoading && state.serviceId == service.id;
 
   void _onPressed(BuildContext context) {
-    final bloc = context.read<AddToCartBloc>();
-    final cartItemId = service.cartItemId;
-    if (service.isInCart && cartItemId != null) {
-      bloc.add(
-        RemoveFromCartRequested(serviceId: service.id, cartItemId: cartItemId),
-      );
+    if (service.isInCart) {
+      // go() replaces the pushed shop/service pages with the Cart tab.
+      context.go('/cart');
     } else {
-      bloc.add(AddToCartRequested(serviceId: service.id));
+      context.read<AddToCartBloc>().add(
+        AddToCartRequested(serviceId: service.id),
+      );
     }
   }
 
@@ -78,12 +75,12 @@ class ServiceBottomBar extends StatelessWidget {
                 builder: (context, state) {
                   final isBusy = _isBusy(state);
                   return AppButton(
-                    label: service.isInCart ? 'Remove' : 'Add to Cart',
+                    label: service.isInCart ? 'Go to Cart' : 'Add to Cart',
                     height: 6.h,
                     isLoading: isBusy,
                     leading: Icon(
                       service.isInCart
-                          ? Icons.remove_shopping_cart_outlined
+                          ? Icons.shopping_cart_checkout_rounded
                           : Icons.shopping_cart_outlined,
                       color: AppColors.background,
                     ),

@@ -6,6 +6,7 @@ import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_search_field.dart';
 import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/cart/presentation/cart_change_listener.dart';
 import 'package:noq/features/service_list/bloc/service_list_bloc.dart';
 import 'package:noq/features/service_list/bloc/service_list_event.dart';
 import 'package:noq/features/service_list/bloc/service_list_state.dart';
@@ -49,37 +50,47 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: const AppAppBar(title: 'All Services'),
-      body: Column(
-        children: [
-          Padding(
-            padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 1.5.h),
-            child: AppSearchField(
-              controller: _controller,
-              hintText: 'Search services...',
-              onChanged: (_) {},
-              onClear: _controller.clear,
-            ),
-          ),
-          Expanded(
-            child: BlocConsumer<ServiceListBloc, ServiceListState>(
-              listenWhen: (previous, current) =>
-                  _isCurrent(current) && current.status != previous.status,
-              listener: (context, state) {
-                if (state.status == ServiceListStatus.notFound) {
-                  // The shop is no longer public — leave instead of retrying.
-                  AppSnackbar.show(
-                    context,
-                    message: 'This business is no longer available.',
-                    type: AppSnackBarType.error,
-                  );
-                  context.pop();
-                }
-              },
-              builder: (context, state) => _buildBody(state),
-            ),
-          ),
-        ],
+      body: CartChangeListener(
+        // Any service may sit in an opened section of this shop.
+        isRelevant: (_) => true,
+        onChanged: (_) =>
+            context.read<ServiceListBloc>().add(const ServiceListCartChanged()),
+        child: _buildContent(),
       ),
+    );
+  }
+
+  Widget _buildContent() {
+    return Column(
+      children: [
+        Padding(
+          padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 1.5.h),
+          child: AppSearchField(
+            controller: _controller,
+            hintText: 'Search services...',
+            onChanged: (_) {},
+            onClear: _controller.clear,
+          ),
+        ),
+        Expanded(
+          child: BlocConsumer<ServiceListBloc, ServiceListState>(
+            listenWhen: (previous, current) =>
+                _isCurrent(current) && current.status != previous.status,
+            listener: (context, state) {
+              if (state.status == ServiceListStatus.notFound) {
+                // The shop is no longer public — leave instead of retrying.
+                AppSnackbar.show(
+                  context,
+                  message: 'This business is no longer available.',
+                  type: AppSnackBarType.error,
+                );
+                context.pop();
+              }
+            },
+            builder: (context, state) => _buildBody(state),
+          ),
+        ),
+      ],
     );
   }
 

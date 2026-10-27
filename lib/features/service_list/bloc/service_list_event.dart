@@ -26,3 +26,8 @@ class ServiceListSectionOpened extends ServiceListEvent {
   @override
   List<Object?> get props => [subCategoryId];
 }
+
+/// The cart changed; refresh opened sections so is_in_cart stays current.
+class ServiceListCartChanged extends ServiceListEvent {
+  const ServiceListCartChanged();
+}

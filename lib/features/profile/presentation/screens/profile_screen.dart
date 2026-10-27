@@ -1,12 +1,29 @@
 import 'package:flutter/material.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
+import 'package:noq/core/auth/auth_session.dart';
+import 'package:noq/core/common/app_alert_dialog.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/profile/presentation/widgets/profile_header.dart';
 import 'package:noq/features/profile/presentation/widgets/profile_section_card.dart';
 
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  Future<void> _handleLogout(BuildContext context) async {
+    final confirmed = await AppAlertDialog.show(
+      context,
+      icon: Icons.logout_rounded,
+      title: 'Logout',
+      message: 'Are you sure you want to logout?',
+      primaryLabel: 'Logout',
+      secondaryLabel: 'Cancel',
+    );
+
+    if (!confirmed) return;
+
+    await AuthSession.logout();
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -84,7 +101,7 @@ class ProfileScreen extends StatelessWidget {
                 ],
               ),
               gap,
-              const ProfileSectionCard(
+              ProfileSectionCard(
                 title: 'Application',
                 items: [
                   ProfileMenuItem(
@@ -92,6 +109,7 @@ class ProfileScreen extends StatelessWidget {
                     label: 'Logout',
                     color: AppColors.error,
                     showChevron: false,
+                    onTap: () => _handleLogout(context),
                   ),
                 ],
               ),

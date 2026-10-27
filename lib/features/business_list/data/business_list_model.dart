@@ -115,6 +115,19 @@ class BusinessListModel {
     );
   }
 
+  BusinessListModel copyWith({bool? isFavorited}) => BusinessListModel(
+    id: id,
+    name: name,
+    thumbnailUrl: thumbnailUrl,
+    services: services,
+    pricing: pricing,
+    rating: rating,
+    waitMinutes: waitMinutes,
+    address: address,
+    distanceKm: distanceKm,
+    isFavorited: isFavorited ?? this.isFavorited,
+  );
+
   String get servicesLabel => services.join(', ');
 
   /// '1.5 km', or null when the distance is unknown.

@@ -19,3 +19,17 @@ class BusinessDetailsRequested extends BusinessDetailsEvent {
   @override
   List<Object?> get props => [businessId, silent];
 }
+
+/// The heart was saved/cleared; patch the loaded page without a reload.
+class BusinessDetailsFavoriteChanged extends BusinessDetailsEvent {
+  final String businessId;
+  final bool isFavorited;
+
+  const BusinessDetailsFavoriteChanged({
+    required this.businessId,
+    required this.isFavorited,
+  });
+
+  @override
+  List<Object?> get props => [businessId, isFavorited];
+}

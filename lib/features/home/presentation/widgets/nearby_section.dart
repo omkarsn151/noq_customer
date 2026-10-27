@@ -1,7 +1,13 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/favorites/bloc/favorite_bloc.dart';
+import 'package:noq/features/favorites/bloc/favorite_event.dart';
+import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
+import 'package:noq/features/home/bloc/home_bloc.dart';
+import 'package:noq/features/home/bloc/home_event.dart';
 import 'package:noq/features/home/data/home_model.dart';
 import 'package:noq/features/home/presentation/widgets/business_card_widget.dart';
 
@@ -12,6 +18,16 @@ class NearbySection extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
+    return FavoriteChangeListener(
+      isRelevant: (id) => nearby.items.any((item) => item.id == id),
+      onChanged: (id, isFavorited) => context.read<HomeBloc>().add(
+        HomeFavoriteChanged(businessId: id, isFavorited: isFavorited),
+      ),
+      child: _buildContent(context),
+    );
+  }
+
+  Widget _buildContent(BuildContext context) {
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.w),
       child: Column(
@@ -52,6 +68,12 @@ class NearbySection extends StatelessWidget {
               distance: item.distanceLabel,
               waitMinutes: item.waitMinutes,
               isFavorite: item.isFavorited,
+              onFavoriteTap: () => context.read<FavoriteBloc>().add(
+                FavoriteToggled(
+                  businessId: item.id,
+                  isFavorited: item.isFavorited,
+                ),
+              ),
               onTap: () => context.push('/business-details/${item.id}'),
             ),
             SizedBox(height: 2.h),

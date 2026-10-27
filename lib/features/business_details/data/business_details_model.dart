@@ -287,4 +287,15 @@ class BusinessDetailsModel {
       ),
     );
   }
+
+  BusinessDetailsModel copyWith({bool? isFavorited}) => BusinessDetailsModel(
+    id: id,
+    business: business,
+    rating: rating,
+    wait: wait,
+    isFavorited: isFavorited ?? this.isFavorited,
+    location: location,
+    reviews: reviews,
+    services: services,
+  );
 }

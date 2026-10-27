@@ -17,3 +17,17 @@ class HomeRequested extends HomeEvent {
   @override
   List<Object?> get props => [refresh];
 }
+
+/// A shop's heart was saved/cleared; patch its nearby card without a reload.
+class HomeFavoriteChanged extends HomeEvent {
+  final String businessId;
+  final bool isFavorited;
+
+  const HomeFavoriteChanged({
+    required this.businessId,
+    required this.isFavorited,
+  });
+
+  @override
+  List<Object?> get props => [businessId, isFavorited];
+}

@@ -13,6 +13,23 @@ class BusinessListBloc extends Bloc<BusinessListEvent, BusinessListState> {
     : super(const BusinessListState()) {
     on<BusinessListRequested>(_onBusinessListRequested);
     on<BusinessListNextPageRequested>(_onNextPageRequested);
+    on<BusinessListFavoriteChanged>(_onFavoriteChanged);
+  }
+
+  void _onFavoriteChanged(
+    BusinessListFavoriteChanged event,
+    Emitter<BusinessListState> emit,
+  ) {
+    emit(
+      state.copyWith(
+        businesses: [
+          for (final item in state.businesses)
+            item.id == event.businessId
+                ? item.copyWith(isFavorited: event.isFavorited)
+                : item,
+        ],
+      ),
+    );
   }
 
   Future<void> _onBusinessListRequested(

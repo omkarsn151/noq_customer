@@ -211,6 +211,19 @@ class NearbyBusinessModel {
     );
   }
 
+  NearbyBusinessModel copyWith({bool? isFavorited}) => NearbyBusinessModel(
+    id: id,
+    name: name,
+    thumbnailUrl: thumbnailUrl,
+    services: services,
+    pricing: pricing,
+    rating: rating,
+    waitMinutes: waitMinutes,
+    address: address,
+    distanceKm: distanceKm,
+    isFavorited: isFavorited ?? this.isFavorited,
+  );
+
   String get servicesLabel => services.join(', ');
 
   /// '1.5 km', or null when the distance is unknown.
@@ -243,6 +256,13 @@ class HomeNearbyModel {
         items: (json['items'] as List<dynamic>? ?? const [])
             .map((e) => NearbyBusinessModel.fromJson(e as Map<String, dynamic>))
             .toList(),
+      );
+
+  HomeNearbyModel copyWith({List<NearbyBusinessModel>? items}) =>
+      HomeNearbyModel(
+        total: total,
+        isSortedByDistance: isSortedByDistance,
+        items: items ?? this.items,
       );
 
   /// Show "View All" only when there are more shops than shown.
@@ -280,4 +300,11 @@ class HomeModel {
       ),
     );
   }
+
+  HomeModel copyWith({HomeNearbyModel? nearby}) => HomeModel(
+    upNext: upNext,
+    categories: categories,
+    specialOffers: specialOffers,
+    nearby: nearby ?? this.nearby,
+  );
 }

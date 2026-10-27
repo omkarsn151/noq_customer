@@ -16,6 +16,8 @@ import 'package:noq/features/business_details/repository/business_details_reposi
 import 'package:noq/features/cart/bloc/add_to_cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/repository/cart_repository.dart';
+import 'package:noq/features/favorites/bloc/favorite_bloc.dart';
+import 'package:noq/features/favorites/repository/favorites_repository.dart';
 import 'package:noq/core/services/location_service.dart';
 import 'package:noq/features/business_list/bloc/business_list_bloc.dart';
 import 'package:noq/features/business_list/repository/business_list_repository.dart';
@@ -54,6 +56,9 @@ class MyApp extends StatelessWidget {
           create: (_) => AddToCartBloc(CartRepository()),
         ),
         BlocProvider<CartBloc>(create: (_) => CartBloc(CartRepository())),
+        BlocProvider<FavoriteBloc>(
+          create: (_) => FavoriteBloc(FavoritesRepository()),
+        ),
         BlocProvider<BookingsBloc>(
           create: (_) => BookingsBloc(BookingsRepository()),
         ),

@@ -12,6 +12,27 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
   HomeBloc(this._repository, this._locationService)
     : super(const HomeInitial()) {
     on<HomeRequested>(_onHomeRequested);
+    on<HomeFavoriteChanged>(_onFavoriteChanged);
+  }
+
+  void _onFavoriteChanged(HomeFavoriteChanged event, Emitter<HomeState> emit) {
+    final current = state;
+    if (current is! HomeLoaded) return;
+    final nearby = current.home.nearby;
+    emit(
+      HomeLoaded(
+        home: current.home.copyWith(
+          nearby: nearby.copyWith(
+            items: [
+              for (final item in nearby.items)
+                item.id == event.businessId
+                    ? item.copyWith(isFavorited: event.isFavorited)
+                    : item,
+            ],
+          ),
+        ),
+      ),
+    );
   }
 
   Future<void> _onHomeRequested(

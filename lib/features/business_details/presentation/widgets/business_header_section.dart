@@ -7,11 +7,13 @@ class BusinessHeaderSection extends StatelessWidget {
   final String? heroUrl;
 
   final bool isFavorited;
+  final VoidCallback? onFavoriteTap;
 
   const BusinessHeaderSection({
     super.key,
     required this.heroUrl,
     required this.isFavorited,
+    this.onFavoriteTap,
   });
 
   @override
@@ -45,6 +47,7 @@ class BusinessHeaderSection extends StatelessWidget {
                     ? Icons.favorite_rounded
                     : Icons.favorite_border_rounded,
                 iconColor: isFavorited ? AppColors.error : null,
+                onTap: onFavoriteTap,
               ),
             ],
           ),

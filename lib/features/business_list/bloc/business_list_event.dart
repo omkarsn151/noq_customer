@@ -22,3 +22,17 @@ class BusinessListRequested extends BusinessListEvent {
 class BusinessListNextPageRequested extends BusinessListEvent {
   const BusinessListNextPageRequested();
 }
+
+/// A shop's heart was saved/cleared; patch its card without a reload.
+class BusinessListFavoriteChanged extends BusinessListEvent {
+  final String businessId;
+  final bool isFavorited;
+
+  const BusinessListFavoriteChanged({
+    required this.businessId,
+    required this.isFavorited,
+  });
+
+  @override
+  List<Object?> get props => [businessId, isFavorited];
+}

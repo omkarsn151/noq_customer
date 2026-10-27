@@ -13,6 +13,9 @@ import 'package:noq/features/business_details/presentation/widgets/business_info
 import 'package:noq/features/business_details/presentation/widgets/customer_reviews_section.dart';
 import 'package:noq/features/business_details/presentation/widgets/popular_services_section.dart';
 import 'package:noq/features/cart/presentation/cart_change_listener.dart';
+import 'package:noq/features/favorites/bloc/favorite_bloc.dart';
+import 'package:noq/features/favorites/bloc/favorite_event.dart';
+import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
 
 class BusinessDetailsScreen extends StatefulWidget {
   final String businessId;
@@ -65,7 +68,17 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
               onChanged: (_) => context.read<BusinessDetailsBloc>().add(
                 BusinessDetailsRequested(widget.businessId, silent: true),
               ),
-              child: _BusinessDetailsBody(details: state.details),
+              child: FavoriteChangeListener(
+                isRelevant: (id) => id == widget.businessId,
+                onChanged: (id, isFavorited) =>
+                    context.read<BusinessDetailsBloc>().add(
+                      BusinessDetailsFavoriteChanged(
+                        businessId: id,
+                        isFavorited: isFavorited,
+                      ),
+                    ),
+                child: _BusinessDetailsBody(details: state.details),
+              ),
             );
           }
           if (state is BusinessDetailsFailure) {
@@ -94,6 +107,12 @@ class _BusinessDetailsBody extends StatelessWidget {
           BusinessHeaderSection(
             heroUrl: details.business.heroUrl,
             isFavorited: details.isFavorited,
+            onFavoriteTap: () => context.read<FavoriteBloc>().add(
+              FavoriteToggled(
+                businessId: details.id,
+                isFavorited: details.isFavorited,
+              ),
+            ),
           ),
           SizedBox(height: 2.h),
           BusinessInfoSection(

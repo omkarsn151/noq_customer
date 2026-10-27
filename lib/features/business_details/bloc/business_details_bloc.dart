@@ -11,6 +11,23 @@ class BusinessDetailsBloc
   BusinessDetailsBloc(this._repository)
     : super(const BusinessDetailsInitial()) {
     on<BusinessDetailsRequested>(_onBusinessDetailsRequested);
+    on<BusinessDetailsFavoriteChanged>(_onFavoriteChanged);
+  }
+
+  void _onFavoriteChanged(
+    BusinessDetailsFavoriteChanged event,
+    Emitter<BusinessDetailsState> emit,
+  ) {
+    final current = state;
+    if (current is! BusinessDetailsLoaded ||
+        current.details.id != event.businessId) {
+      return;
+    }
+    emit(
+      BusinessDetailsLoaded(
+        details: current.details.copyWith(isFavorited: event.isFavorited),
+      ),
+    );
   }
 
   Future<void> _onBusinessDetailsRequested(

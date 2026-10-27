@@ -54,4 +54,7 @@ class ApiEndpoints {
 
   //====================Home====================
   static const String customerHome = "v1/customer/home";
+
+  //====================Favorites====================
+  static const String favorites = "v1/customer/favorites";
 }

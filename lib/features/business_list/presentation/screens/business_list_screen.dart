@@ -7,6 +7,9 @@ import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/business_list/bloc/business_list_bloc.dart';
 import 'package:noq/features/business_list/bloc/business_list_event.dart';
 import 'package:noq/features/business_list/bloc/business_list_state.dart';
+import 'package:noq/features/favorites/bloc/favorite_bloc.dart';
+import 'package:noq/features/favorites/bloc/favorite_event.dart';
+import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
 import 'package:noq/features/home/presentation/widgets/business_card_widget.dart';
 
 class BusinessListScreen extends StatefulWidget {
@@ -58,70 +61,89 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(title: widget.categoryName),
-      body: BlocBuilder<BusinessListBloc, BusinessListState>(
-        builder: (context, state) {
-          switch (state.status) {
-            case BusinessListStatus.initial:
-            case BusinessListStatus.loading:
-              return const Center(child: CircularProgressIndicator());
-            case BusinessListStatus.failure:
-              return _BusinessListMessage(
-                message: state.message,
-                onRetry: _load,
-              );
-            case BusinessListStatus.success:
-              if (state.businesses.isEmpty) {
+      body: FavoriteChangeListener(
+        isRelevant: (id) => context
+            .read<BusinessListBloc>()
+            .state
+            .businesses
+            .any((item) => item.id == id),
+        onChanged: (id, isFavorited) => context.read<BusinessListBloc>().add(
+          BusinessListFavoriteChanged(businessId: id, isFavorited: isFavorited),
+        ),
+        child: BlocBuilder<BusinessListBloc, BusinessListState>(
+          builder: (context, state) {
+            switch (state.status) {
+              case BusinessListStatus.initial:
+              case BusinessListStatus.loading:
+                return const Center(child: CircularProgressIndicator());
+              case BusinessListStatus.failure:
                 return _BusinessListMessage(
-                  message: 'No businesses in this category yet',
+                  message: state.message,
                   onRetry: _load,
                 );
-              }
-              return RefreshIndicator(
-                color: AppColors.primary,
-                onRefresh: () async => _load(),
-                child: NotificationListener<ScrollNotification>(
-                  onNotification: (notification) =>
-                      _onScroll(state, notification),
-                  child: ListView.separated(
-                    padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 3.h),
-                    physics: const AlwaysScrollableScrollPhysics(),
-                    itemCount:
-                        state.businesses.length + (state.isLoadingMore ? 1 : 0),
-                    separatorBuilder: (_, _) => SizedBox(height: 2.h),
-                    itemBuilder: (context, index) {
-                      if (index == state.businesses.length) {
-                        return Padding(
-                          padding: EdgeInsets.symmetric(vertical: 2.h),
-                          child: const Center(
-                            child: SizedBox(
-                              width: 24,
-                              height: 24,
-                              child: CircularProgressIndicator(strokeWidth: 2),
+              case BusinessListStatus.success:
+                if (state.businesses.isEmpty) {
+                  return _BusinessListMessage(
+                    message: 'No businesses in this category yet',
+                    onRetry: _load,
+                  );
+                }
+                return RefreshIndicator(
+                  color: AppColors.primary,
+                  onRefresh: () async => _load(),
+                  child: NotificationListener<ScrollNotification>(
+                    onNotification: (notification) =>
+                        _onScroll(state, notification),
+                    child: ListView.separated(
+                      padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 3.h),
+                      physics: const AlwaysScrollableScrollPhysics(),
+                      itemCount:
+                          state.businesses.length +
+                          (state.isLoadingMore ? 1 : 0),
+                      separatorBuilder: (_, _) => SizedBox(height: 2.h),
+                      itemBuilder: (context, index) {
+                        if (index == state.businesses.length) {
+                          return Padding(
+                            padding: EdgeInsets.symmetric(vertical: 2.h),
+                            child: const Center(
+                              child: SizedBox(
+                                width: 24,
+                                height: 24,
+                                child: CircularProgressIndicator(
+                                  strokeWidth: 2,
+                                ),
+                              ),
+                            ),
+                          );
+                        }
+                        final item = state.businesses[index];
+                        return BusinessCardWidget(
+                          imageUrl: item.thumbnailUrl,
+                          name: item.name,
+                          services: item.servicesLabel,
+                          priceRange: item.pricing?.priceLabel,
+                          rating: item.rating.average,
+                          totalReviews: item.rating.totalReviews,
+                          address: item.address,
+                          distance: item.distanceLabel,
+                          waitMinutes: item.waitMinutes,
+                          isFavorite: item.isFavorited,
+                          onFavoriteTap: () => context.read<FavoriteBloc>().add(
+                            FavoriteToggled(
+                              businessId: item.id,
+                              isFavorited: item.isFavorited,
                             ),
                           ),
+                          onTap: () =>
+                              context.push('/business-details/${item.id}'),
                         );
-                      }
-                      final item = state.businesses[index];
-                      return BusinessCardWidget(
-                        imageUrl: item.thumbnailUrl,
-                        name: item.name,
-                        services: item.servicesLabel,
-                        priceRange: item.pricing?.priceLabel,
-                        rating: item.rating.average,
-                        totalReviews: item.rating.totalReviews,
-                        address: item.address,
-                        distance: item.distanceLabel,
-                        waitMinutes: item.waitMinutes,
-                        isFavorite: item.isFavorited,
-                        onTap: () =>
-                            context.push('/business-details/${item.id}'),
-                      );
-                    },
+                      },
+                    ),
                   ),
-                ),
-              );
-          }
-        },
+                );
+            }
+          },
+        ),
       ),
     );
   }

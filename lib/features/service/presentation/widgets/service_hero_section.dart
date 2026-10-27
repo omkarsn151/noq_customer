@@ -1,10 +1,12 @@
 import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
 class ServiceHeroSection extends StatelessWidget {
-  const ServiceHeroSection({super.key});
+  /// Null when the service has no picture — a placeholder is shown.
+  final String? heroUrl;
+
+  const ServiceHeroSection({super.key, required this.heroUrl});
 
   @override
   Widget build(BuildContext context) {
@@ -12,12 +14,7 @@ class ServiceHeroSection extends StatelessWidget {
       children: [
         ClipRRect(
           borderRadius: BorderRadius.vertical(bottom: Radius.circular(25.sp)),
-          child: Image.asset(
-            AppAssets.businessThumbnail2,
-            width: double.infinity,
-            height: 38.h,
-            fit: BoxFit.cover,
-          ),
+          child: _buildImage(),
         ),
         Positioned(
           top: 6.h,
@@ -46,6 +43,29 @@ class ServiceHeroSection extends StatelessWidget {
           ),
         ),
       ],
+    );
+  }
+
+  Widget _buildImage() {
+    Widget placeholder() => Container(
+      width: double.infinity,
+      height: 38.h,
+      color: AppColors.borderLight,
+      child: Icon(
+        Icons.content_cut_rounded,
+        size: 40.sp,
+        color: AppColors.textSecondary,
+      ),
+    );
+
+    final url = heroUrl;
+    if (url == null) return placeholder();
+    return Image.network(
+      url,
+      width: double.infinity,
+      height: 38.h,
+      fit: BoxFit.cover,
+      errorBuilder: (context, error, stackTrace) => placeholder(),
     );
   }
 }

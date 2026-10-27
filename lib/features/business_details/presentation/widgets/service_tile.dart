@@ -5,9 +5,14 @@ import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/business_details/data/business_details_model.dart';
 
 class ServiceTile extends StatelessWidget {
+  final String businessId;
   final BusinessServiceModel service;
 
-  const ServiceTile({super.key, required this.service});
+  const ServiceTile({
+    super.key,
+    required this.businessId,
+    required this.service,
+  });
 
   @override
   Widget build(BuildContext context) {
@@ -15,7 +20,9 @@ class ServiceTile extends StatelessWidget {
     final description = service.description;
 
     return InkWell(
-      onTap: () => context.push('/service-details'),
+      onTap: () => context.push(
+        '/business-details/$businessId/services/${service.id}',
+      ),
       child: Row(
         crossAxisAlignment: CrossAxisAlignment.start,
         children: [

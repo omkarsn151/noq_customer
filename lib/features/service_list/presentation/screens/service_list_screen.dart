@@ -113,6 +113,7 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
               for (final section in state.sections)
                 ServiceCategorySection(
                   key: ValueKey(section.id),
+                  businessId: widget.businessId,
                   section: section,
                   services: state.sectionServices[section.id],
                   onExpand: () => context.read<ServiceListBloc>().add(

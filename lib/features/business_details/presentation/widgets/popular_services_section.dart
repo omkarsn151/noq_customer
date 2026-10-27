@@ -48,7 +48,7 @@ class PopularServicesSection extends StatelessWidget {
           ),
           SizedBox(height: 1.5.h),
           for (int i = 0; i < services.length; i++) ...[
-            ServiceTile(service: services[i]),
+            ServiceTile(businessId: businessId, service: services[i]),
             if (i != services.length - 1)
               Padding(
                 padding: EdgeInsets.symmetric(vertical: 1.5.h),

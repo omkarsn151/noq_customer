@@ -78,8 +78,11 @@ class AppRouter {
       ),
 
       GoRoute(
-        path: '/service-details',
-        builder: (context, state) => const ServiceDetailsScreen(),
+        path: '/business-details/:businessId/services/:serviceId',
+        builder: (context, state) => ServiceDetailsScreen(
+          businessId: state.pathParameters['businessId']!,
+          serviceId: state.pathParameters['serviceId']!,
+        ),
       ),
 
       GoRoute(

@@ -6,6 +6,7 @@ import 'package:noq/features/service_list/bloc/service_list_state.dart';
 import 'package:noq/features/service_list/data/service_list_model.dart';
 
 class ServiceCategorySection extends StatefulWidget {
+  final String businessId;
   final ShopSectionModel section;
 
   /// Null until the section has been opened at least once.
@@ -18,6 +19,7 @@ class ServiceCategorySection extends StatefulWidget {
 
   const ServiceCategorySection({
     super.key,
+    required this.businessId,
     required this.section,
     required this.services,
     required this.onExpand,
@@ -136,7 +138,7 @@ class _ServiceCategorySectionState extends State<ServiceCategorySection> {
     return Column(
       children: [
         for (int i = 0; i < items.length; i++) ...[
-          ServiceTile(service: items[i]),
+          ServiceTile(businessId: widget.businessId, service: items[i]),
           if (i != items.length - 1)
             Padding(
               padding: EdgeInsets.symmetric(vertical: 1.5.h),

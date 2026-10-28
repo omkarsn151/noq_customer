@@ -9,6 +9,8 @@ import 'package:noq/features/auth/request_otp/bloc/request_otp_bloc.dart';
 import 'package:noq/features/auth/request_otp/repository/request_otp_repository.dart';
 import 'package:noq/features/auth/verify_otp/bloc/verify_otp_bloc.dart';
 import 'package:noq/features/auth/verify_otp/reopsitory/verify_otp_repository.dart';
+import 'package:noq/features/booking_detials/bloc/booking_details_bloc.dart';
+import 'package:noq/features/booking_detials/repository/booking_details_repository.dart';
 import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
 import 'package:noq/features/bookings/repository/bookings_repository.dart';
 import 'package:noq/features/business_details/bloc/business_details_bloc.dart';
@@ -85,6 +87,10 @@ class MyApp extends StatelessWidget {
         ),
         BlocProvider<ServiceDetailsBloc>(
           create: (_) => ServiceDetailsBloc(ServiceDetailsRepository()),
+        ),
+        BlocProvider<BookingDetailsBloc>(
+          create: (_) =>
+              BookingDetailsBloc(BookingDetailsRepository(), LocationService()),
         ),
       ],
       child: Sizer(

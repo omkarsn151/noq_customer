@@ -2,51 +2,27 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/details_card.dart';
+import 'package:noq/features/bookings/data/booking_tone.dart';
+import 'package:noq/features/bookings/presentation/widgets/booking_status_label.dart';
 
+/// [label] and [message] are the server's `status_label` / `status_message`,
+/// printed as-is; [tone] alone picks the colour.
 class BookingStatusCard extends StatelessWidget {
-  final String status;
+  final String label;
   final String message;
+  final BookingTone tone;
 
   const BookingStatusCard({
     super.key,
-    required this.status,
+    required this.label,
     required this.message,
+    required this.tone,
   });
-
-  ({IconData icon, Color color, String label}) get _style {
-    switch (status.toLowerCase()) {
-      case 'pending':
-        return (
-          icon: Icons.access_time_rounded,
-          color: AppColors.primary,
-          label: 'Pending',
-        );
-      case 'completed':
-        return (
-          icon: Icons.check_rounded,
-          color: AppColors.blue,
-          label: 'Completed',
-        );
-      case 'cancelled':
-      case 'canceled':
-        return (
-          icon: Icons.close_rounded,
-          color: AppColors.error,
-          label: 'Cancelled',
-        );
-      default:
-        return (
-          icon: Icons.check_rounded,
-          color: AppColors.success,
-          label: 'Confirmed',
-        );
-    }
-  }
 
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final style = _style;
+    final (icon, color) = BookingStatusLabel.styleOf(tone);
 
     return DetailsCard(
       child: Column(
@@ -56,24 +32,28 @@ class BookingStatusCard extends StatelessWidget {
           SizedBox(height: 1.5.h),
           Row(
             children: [
-              Icon(style.icon, size: 18.sp, color: style.color),
+              Icon(icon, size: 18.sp, color: color),
               SizedBox(width: 3.w),
-              Text(
-                style.label,
-                style: textTheme.bodyLarge?.copyWith(color: style.color),
+              Expanded(
+                child: Text(
+                  label,
+                  style: textTheme.bodyLarge?.copyWith(color: color),
+                ),
               ),
             ],
           ),
-          SizedBox(height: 0.6.h),
-          Padding(
-            padding: EdgeInsets.only(left: 9.w),
-            child: Text(
-              message,
-              style: textTheme.bodySmall?.copyWith(
-                color: AppColors.textSecondary,
+          if (message.isNotEmpty) ...[
+            SizedBox(height: 0.6.h),
+            Padding(
+              padding: EdgeInsets.only(left: 9.w),
+              child: Text(
+                message,
+                style: textTheme.bodySmall?.copyWith(
+                  color: AppColors.textSecondary,
+                ),
               ),
             ),
-          ),
+          ],
         ],
       ),
     );

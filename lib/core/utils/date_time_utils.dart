@@ -58,6 +58,41 @@ class DateTimeUtils {
     'Dec',
   ];
 
+  /// Full date in the device's local timezone, e.g. `12 Oct 2026`.
+  static String formatFullDate(DateTime dateTime) {
+    final local = dateTime.toLocal();
+    return '${local.day.toString().padLeft(2, '0')} '
+        '${_monthAbbr[local.month - 1]} ${local.year}';
+  }
+
+  /// Length label, e.g. `45 mins`, `1 hr`, `1 hr 15 mins`.
+  static String formatDuration(int minutes) {
+    final hours = minutes ~/ 60;
+    final mins = minutes % 60;
+    final minLabel = '$mins min${mins == 1 ? '' : 's'}';
+    if (hours == 0) return minLabel;
+    final hourLabel = '$hours hr${hours == 1 ? '' : 's'}';
+    return mins == 0 ? hourLabel : '$hourLabel $minLabel';
+  }
+
+  /// A plain 24-hour `HH:MM` clock string as a 12-hour label, e.g.
+  /// `20:00` -> `8 PM`, `20:30` -> `8:30 PM`. Returns null when malformed.
+  /// No timezone conversion — the string is already the shop's local time.
+  static String? formatClockString(String hhmm) {
+    final parts = hhmm.split(':');
+    if (parts.length < 2) return null;
+    final hour = int.tryParse(parts[0]);
+    final minute = int.tryParse(parts[1]);
+    if (hour == null || minute == null || hour > 23 || minute > 59) {
+      return null;
+    }
+    final hour12 = hour % 12 == 0 ? 12 : hour % 12;
+    final suffix = hour < 12 ? 'AM' : 'PM';
+    return minute == 0
+        ? '$hour12 $suffix'
+        : '$hour12:${minute.toString().padLeft(2, '0')} $suffix';
+  }
+
   /// Booking list label in the device's local timezone, e.g. `Today, 04:00 PM`,
   /// `Tomorrow, 06:00 PM` or `Jun 09, 07:00 PM`. With [relative] off the date
   /// is always written out, which suits the history tabs (Past, Cancelled).

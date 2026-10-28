@@ -41,6 +41,9 @@ class ApiEndpoints {
 
   static const String createBooking = "v1/customer/bookings";
 
+  // + "/{booking_id}"
+  static const String getBookingDetails = "v1/customer/bookings";
+
   //====================Promo Code====================
   static const String getPromoCodes = "v1/customer/cart/promos";
   static const String applyPromoCode = "v1/customer/cart/promo";

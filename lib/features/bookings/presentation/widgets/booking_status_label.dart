@@ -32,15 +32,18 @@ class BookingStatusLabel extends StatelessWidget {
     return BookingStatusLabel(key: key, label: label, tone: tone);
   }
 
+  /// Icon and colour for a [tone] — shared with the Booking Details status card.
+  static (IconData, Color) styleOf(BookingTone tone) => switch (tone) {
+    BookingTone.success => (Icons.check_circle_rounded, AppColors.success),
+    BookingTone.info => (Icons.access_time_rounded, AppColors.blue),
+    BookingTone.warning => (Icons.error_outline_rounded, AppColors.orange),
+    BookingTone.danger => (Icons.cancel_rounded, AppColors.error),
+  };
+
   @override
   Widget build(BuildContext context) {
     final textTheme = Theme.of(context).textTheme;
-    final (icon, color) = switch (tone) {
-      BookingTone.success => (Icons.check_circle_rounded, AppColors.success),
-      BookingTone.info => (Icons.access_time_rounded, AppColors.blue),
-      BookingTone.warning => (Icons.error_outline_rounded, AppColors.orange),
-      BookingTone.danger => (Icons.cancel_rounded, AppColors.error),
-    };
+    final (icon, color) = styleOf(tone);
 
     return Row(
       mainAxisSize: MainAxisSize.min,

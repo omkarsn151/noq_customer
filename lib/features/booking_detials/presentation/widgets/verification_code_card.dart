@@ -34,11 +34,15 @@ class VerificationCodeCard extends StatelessWidget {
               color: AppColors.primaryLight,
               borderRadius: BorderRadius.circular(3.w),
             ),
-            child: Text(
-              code.isEmpty ? '--' : code,
-              style: textTheme.headlineLarge?.copyWith(
-                color: AppColors.primary,
-                letterSpacing: 6,
+            // 6 digits — scale down rather than overflow on narrow phones.
+            child: FittedBox(
+              fit: BoxFit.scaleDown,
+              child: Text(
+                code.isEmpty ? '--' : code,
+                style: textTheme.headlineLarge?.copyWith(
+                  color: AppColors.primary,
+                  letterSpacing: 6,
+                ),
               ),
             ),
           ),

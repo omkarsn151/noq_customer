@@ -1,10 +1,13 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
+import 'package:noq/core/common/app_alert_dialog.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_button.dart';
 import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
+import 'package:noq/features/bookings/data/booking_rescheduled_model.dart';
 import 'package:noq/features/bookings/presentation/screens/booking_success_screen.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
@@ -16,9 +19,20 @@ import 'package:noq/features/slot/data/slot_model.dart';
 import 'package:sizer/sizer.dart';
 
 class SlotScreen extends StatefulWidget {
-  final String businessId;
+  /// Cart mode: book a new visit at this shop.
+  final String? businessId;
 
-  const SlotScreen({super.key, required this.businessId});
+  /// Reschedule mode: move this booking. Exactly one of the two is set.
+  final String? rescheduleBookingId;
+
+  const SlotScreen({super.key, required String this.businessId})
+    : rescheduleBookingId = null;
+
+  const SlotScreen.reschedule({super.key, required String bookingId})
+    : businessId = null,
+      rescheduleBookingId = bookingId;
+
+  bool get isReschedule => rescheduleBookingId != null;
 
   @override
   State<SlotScreen> createState() => _SlotScreenState();
@@ -28,7 +42,53 @@ class _SlotScreenState extends State<SlotScreen> {
   @override
   void initState() {
     super.initState();
-    context.read<SlotBloc>().add(SlotRequested(widget.businessId));
+    context.read<SlotBloc>().add(
+      widget.isReschedule
+          ? SlotRescheduleRequested(widget.rescheduleBookingId!)
+          : SlotRequested(widget.businessId!),
+    );
+  }
+
+  void _rescheduleListener(BuildContext context, SlotLoaded state) {
+    final result = state.rescheduled;
+    if (result != null) {
+      // Branch on the outcome only: for a pending request `scheduledStart` is
+      // still the old time, so comparing times would misread it as moved.
+      switch (result.outcome) {
+        case RescheduleOutcome.moved:
+          AppSnackbar.success(
+            context,
+            result.message.isEmpty
+                ? 'Your booking has been rescheduled.'
+                : result.message,
+          );
+          context.pop(true);
+        case RescheduleOutcome.requestPending:
+          final asked = result.proposedStart;
+          AppSnackbar.info(
+            context,
+            asked == null
+                ? result.message
+                : 'Request sent to ${state.model.business.name} for '
+                      '${DateTimeUtils.formatBookingDateTime(asked)}. '
+                      'Your booking stays at its current time until they '
+                      'respond.',
+          );
+          context.pop(true);
+        case RescheduleOutcome.unchanged:
+          // The API asks for no toast: nothing changed.
+          context.pop(false);
+      }
+      return;
+    }
+
+    final error = state.submitError;
+    if (error != null) {
+      AppSnackbar.error(context, error);
+      // The booking itself can't be moved any more; `true` tells the caller to
+      // refresh. Every other failure has already reloaded the grid.
+      if (state.isBookingInvalid) context.pop(true);
+    }
   }
 
   @override
@@ -37,10 +97,16 @@ class _SlotScreenState extends State<SlotScreen> {
       listenWhen: (previous, current) {
         if (previous is! SlotLoaded || current is! SlotLoaded) return false;
         return previous.submitError != current.submitError ||
-            previous.createdBooking != current.createdBooking;
+            previous.createdBooking != current.createdBooking ||
+            previous.rescheduled != current.rescheduled;
       },
       listener: (context, state) {
         if (state is! SlotLoaded) return;
+
+        if (widget.isReschedule) {
+          _rescheduleListener(context, state);
+          return;
+        }
 
         final booking = state.createdBooking;
         if (booking != null) {
@@ -72,21 +138,38 @@ class _SlotScreenState extends State<SlotScreen> {
 
         return Scaffold(
           appBar: AppAppBar(
-            title: 'Service Slot',
+            title: widget.isReschedule ? 'Reschedule Booking' : 'Service Slot',
             subtitle: (businessName?.isEmpty ?? true) ? null : businessName,
           ),
           body: switch (state) {
             SlotFailure() => Center(
               child: Padding(
                 padding: EdgeInsets.symmetric(horizontal: 8.w),
-                child: Text(
-                  state.message,
-                  textAlign: TextAlign.center,
-                  style: Theme.of(context).textTheme.bodyMedium,
+                child: Column(
+                  mainAxisSize: MainAxisSize.min,
+                  children: [
+                    Text(
+                      state.message,
+                      textAlign: TextAlign.center,
+                      style: Theme.of(context).textTheme.bodyMedium,
+                    ),
+                    // The booking may have changed between the tap and the
+                    // load; leaving with `true` makes the caller refresh.
+                    if (widget.isReschedule) ...[
+                      SizedBox(height: 2.h),
+                      OutlinedButton(
+                        onPressed: () => context.pop(true),
+                        child: const Text('Go back'),
+                      ),
+                    ],
+                  ],
                 ),
               ),
             ),
-            SlotLoaded() => _SlotContent(state: state),
+            SlotLoaded() => _SlotContent(
+              state: state,
+              isReschedule: widget.isReschedule,
+            ),
             _ => const Center(child: CircularProgressIndicator()),
           },
         );
@@ -97,8 +180,9 @@ class _SlotScreenState extends State<SlotScreen> {
 
 class _SlotContent extends StatelessWidget {
   final SlotLoaded state;
+  final bool isReschedule;
 
-  const _SlotContent({required this.state});
+  const _SlotContent({required this.state, required this.isReschedule});
 
   @override
   Widget build(BuildContext context) {
@@ -135,7 +219,7 @@ class _SlotContent extends StatelessWidget {
             SizedBox(height: 3.h),
             Divider(height: 1, color: AppColors.borderLight),
             SizedBox(height: 2.h),
-            _SlotFooter(state: state),
+            _SlotFooter(state: state, isReschedule: isReschedule),
             SizedBox(height: 5.h),
           ],
         ),
@@ -501,8 +585,26 @@ class _StaffPlaceholder extends StatelessWidget {
 
 class _SlotFooter extends StatelessWidget {
   final SlotLoaded state;
+  final bool isReschedule;
 
-  const _SlotFooter({required this.state});
+  const _SlotFooter({required this.state, required this.isReschedule});
+
+  /// Reschedule asks first: unlike checkout there is no payment step after
+  /// this, so the tap itself moves the booking.
+  Future<void> _confirmReschedule(BuildContext context) async {
+    final confirmed = await AppAlertDialog.show(
+      context,
+      icon: Icons.event_repeat_outlined,
+      title: 'Reschedule Booking?',
+      message:
+          'Move your booking to '
+          '${DateTimeUtils.formatBookingDateTime(state.selectedStarts.first)}?',
+      primaryLabel: 'Reschedule',
+      secondaryLabel: 'Keep Current Time',
+    );
+    if (!confirmed || !context.mounted) return;
+    context.read<SlotBloc>().add(const SlotBookingSubmitted());
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -535,14 +637,16 @@ class _SlotFooter extends StatelessWidget {
           width: 50.w,
           height: 5.h,
           child: AppButton(
-            label: 'Proceed to Checkout',
+            label: isReschedule ? 'Confirm New Slot' : 'Proceed to Checkout',
             // isLoading also nulls onPressed, so a second tap cannot book twice
             // while the create call is in flight.
             isLoading: state.isSubmitting,
             onPressed: state.selectedStarts.length == state.requiredSlots
-                ? () => context.read<SlotBloc>().add(
-                    const SlotBookingSubmitted(),
-                  )
+                ? isReschedule
+                      ? () => _confirmReschedule(context)
+                      : () => context.read<SlotBloc>().add(
+                          const SlotBookingSubmitted(),
+                        )
                 : null,
             style: ElevatedButton.styleFrom(
               textStyle: textTheme.bodySmall!.copyWith(

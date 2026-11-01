@@ -1,3 +1,4 @@
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noq/features/auth/request_otp/presentation/screens/login_screen.dart';
 import 'package:noq/features/auth/verify_otp/presentation/screens/otp_verification_scren.dart';
@@ -8,7 +9,7 @@ import 'package:noq/features/business_list/presentation/screens/business_list_sc
 import 'package:noq/features/business_details/presentation/screen/business_details_screen.dart';
 import 'package:noq/features/cart/presentation/screens/cart_screen.dart';
 import 'package:noq/features/categories/presentation/screens/categories_screen.dart';
-import 'package:noq/features/dummy/service_slot.dart';
+import 'package:noq/features/favorites/presentation/screens/favorites_screen.dart';
 import 'package:noq/features/home/presentation/screens/home_screen.dart';
 import 'package:noq/features/main_screen/main_screen.dart';
 import 'package:noq/features/privacy/privacy_policy_screen.dart';
@@ -17,7 +18,9 @@ import 'package:noq/features/reviews/presentation/screens/reviews_screen.dart';
 import 'package:noq/features/search/presentation/screens/search_screen.dart';
 import 'package:noq/features/service_list/presentation/screens/service_list_screen.dart';
 import 'package:noq/features/service/presentation/screens/service_details_screen.dart';
+import 'package:noq/features/slot/bloc/slot_bloc.dart';
 import 'package:noq/features/slot/presentation/screens/slot_screen.dart';
+import 'package:noq/features/slot/repository/slot_repository.dart';
 import 'package:noq/features/splash/splash_screen.dart';
 import 'package:noq/features/tnc/tnc_screen.dart';
 import 'package:noq/features/welcome/welcome_screen.dart';
@@ -78,6 +81,11 @@ class AppRouter {
       ),
 
       GoRoute(
+        path: '/favorites',
+        builder: (context, state) => const FavoritesScreen(),
+      ),
+
+      GoRoute(
         path: '/business-details/:businessId/services/:serviceId',
         builder: (context, state) => ServiceDetailsScreen(
           businessId: state.pathParameters['businessId']!,
@@ -91,9 +99,17 @@ class AppRouter {
             SlotScreen(businessId: state.pathParameters['businessId']!),
       ),
 
+      // A fresh SlotBloc per visit: the app-wide one belongs to the cart flow,
+      // and a reschedule grid is a snapshot that must not leak into it (or vice
+      // versa).
       GoRoute(
-        path: '/reschedule-slot',
-        builder: (context, state) => const ServiceSlot(isReschedule: true),
+        path: '/reschedule/:bookingId',
+        builder: (context, state) => BlocProvider<SlotBloc>(
+          create: (_) => SlotBloc(SlotRepository()),
+          child: SlotScreen.reschedule(
+            bookingId: state.pathParameters['bookingId']!,
+          ),
+        ),
       ),
 
       GoRoute(

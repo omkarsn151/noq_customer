@@ -15,6 +15,9 @@ class ManageBookingCard extends StatelessWidget {
   final VoidCallback? onCancel;
   final VoidCallback? onReview;
 
+  /// While true the Cancel row is disabled and shows a spinner.
+  final bool isCancelling;
+
   const ManageBookingCard({
     super.key,
     required this.actions,
@@ -22,6 +25,7 @@ class ManageBookingCard extends StatelessWidget {
     this.onReschedule,
     this.onCancel,
     this.onReview,
+    this.isCancelling = false,
   });
 
   @override
@@ -44,7 +48,14 @@ class ManageBookingCard extends StatelessWidget {
           icon: Icons.cancel_outlined,
           label: 'Cancel Booking',
           color: AppColors.error,
-          onTap: onCancel,
+          onTap: isCancelling ? null : onCancel,
+          trailing: isCancelling
+              ? SizedBox(
+                  width: 16.sp,
+                  height: 16.sp,
+                  child: const CircularProgressIndicator(strokeWidth: 2),
+                )
+              : null,
         ),
     ];
 
@@ -75,11 +86,15 @@ class _ManageRow extends StatelessWidget {
   final Color? color;
   final VoidCallback? onTap;
 
+  /// Replaces the chevron when set.
+  final Widget? trailing;
+
   const _ManageRow({
     required this.icon,
     required this.label,
     this.color,
     this.onTap,
+    this.trailing,
   });
 
   @override
@@ -102,11 +117,12 @@ class _ManageRow extends StatelessWidget {
                 ).textTheme.bodyMedium?.copyWith(color: textColor),
               ),
             ),
-            Icon(
-              Icons.chevron_right_rounded,
-              size: 20.sp,
-              color: AppColors.textSecondary,
-            ),
+            trailing ??
+                Icon(
+                  Icons.chevron_right_rounded,
+                  size: 20.sp,
+                  color: AppColors.textSecondary,
+                ),
           ],
         ),
       ),

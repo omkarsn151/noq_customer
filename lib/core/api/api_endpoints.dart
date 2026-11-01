@@ -17,6 +17,9 @@ class ApiEndpoints {
   //update-name
   static const String updateName = "v1/customer/auth/profile";
 
+  //get-profile
+  static const String getProfile = "v1/customer/auth/profile";
+
   //====================Uplaod====================
 
   static const String upload = "v1/uploads";
@@ -43,6 +46,15 @@ class ApiEndpoints {
 
   // + "/{booking_id}"
   static const String getBookingDetails = "v1/customer/bookings";
+
+  // + "/{booking_id}/slots"
+  static const String getRescheduleSlots = "v1/customer/bookings";
+
+  // + "/{booking_id}/reschedule"
+  static const String rescheduleBooking = "v1/customer/bookings";
+
+  // + "/{booking_id}/cancel"
+  static const String cancelBooking = "v1/customer/bookings";
 
   //====================Promo Code====================
   static const String getPromoCodes = "v1/customer/cart/promos";

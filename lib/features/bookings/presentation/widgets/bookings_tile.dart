@@ -1,12 +1,17 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_snackbar.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
+import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
+import 'package:noq/features/bookings/bloc/bookings_event.dart';
+import 'package:noq/features/bookings/bloc/cancel_booking_bloc.dart';
+import 'package:noq/features/bookings/bloc/cancel_booking_state.dart';
 import 'package:noq/features/bookings/data/booking_model.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
+import 'package:noq/features/bookings/presentation/cancel_booking_flow.dart';
 import 'package:noq/features/bookings/presentation/widgets/booking_status_label.dart';
 
 class BookingsTile extends StatelessWidget {
@@ -18,12 +23,20 @@ class BookingsTile extends StatelessWidget {
     context.push('/booking-details/${booking.booking.id}');
   }
 
-  void _onReschedule(BuildContext context) {
-    context.push('/reschedule-slot');
+  Future<void> _onReschedule(BuildContext context) async {
+    final changed = await context.push<bool>(
+      '/reschedule/${booking.booking.id}',
+    );
+    if (changed == true && context.mounted) {
+      // A moved booking re-sorts within Upcoming; a pending one gains its badge.
+      context.read<BookingsBloc>().add(
+        const BookingsRefreshRequested(tab: BookingTab.upcoming),
+      );
+    }
   }
 
   void _onCancel(BuildContext context) {
-    AppSnackbar.info(context, 'Cancelling bookings is not available yet.');
+    runCancelBooking(context, bookingId: booking.booking.id);
   }
 
   void _onReview(BuildContext context) {
@@ -159,11 +172,15 @@ class BookingsTile extends StatelessWidget {
   }
 
   Widget _fallbackThumbnail() {
-    return Image.asset(
-      AppAssets.businessThumbnail,
+    return Container(
       width: 12.w,
       height: 12.w,
-      fit: BoxFit.cover,
+      color: AppColors.borderLight,
+      child: Icon(
+        Icons.storefront_outlined,
+        size: 18.sp,
+        color: AppColors.textSecondary,
+      ),
     );
   }
 
@@ -193,11 +210,32 @@ class BookingsTile extends StatelessWidget {
         ),
     ];
 
+    // Swap the ⋮ for a spinner while this card's cancel is in flight; scoped
+    // here so the rest of the tile does not rebuild.
+    return BlocSelector<CancelBookingBloc, CancelBookingState, bool>(
+      selector: (state) =>
+          state is CancelBookingInProgress &&
+          state.bookingId == booking.booking.id,
+      builder: (context, isCancelling) {
+        if (isCancelling) {
+          return Padding(
+            padding: EdgeInsets.all(2.w),
+            child: SizedBox(
+              width: 18.sp,
+              height: 18.sp,
+              child: const CircularProgressIndicator(strokeWidth: 2),
+            ),
+          );
+        }
+        return _menuButton(context, items);
+      },
+    );
+  }
+
+  Widget _menuButton(BuildContext context, List<PopupMenuEntry<String>> items) {
     return PopupMenuButton<String>(
       padding: EdgeInsets.zero,
-      shape: RoundedRectangleBorder(
-        borderRadius: BorderRadius.circular(14.sp),
-      ),
+      shape: RoundedRectangleBorder(borderRadius: BorderRadius.circular(14.sp)),
       menuPadding: EdgeInsets.symmetric(horizontal: 2.w, vertical: 0.5.h),
       color: AppColors.background,
       surfaceTintColor: AppColors.background,

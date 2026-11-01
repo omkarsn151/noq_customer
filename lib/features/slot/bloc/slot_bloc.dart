@@ -3,6 +3,8 @@ import 'package:noq/core/api/api_exception.dart';
 import 'package:noq/features/bookings/repository/bookings_repository.dart';
 import 'package:noq/features/slot/bloc/slot_event.dart';
 import 'package:noq/features/slot/bloc/slot_state.dart';
+import 'package:noq/features/slot/data/slot_model.dart';
+import 'package:noq/features/slot/data/slot_source.dart';
 import 'package:noq/features/slot/repository/slot_repository.dart';
 
 /// Error codes that mean our copy of the grid no longer matches the shop's, so
@@ -22,16 +24,26 @@ const Set<String> _staleGridCodes = {
 /// underneath us, so the customer has to go back and rebuild it.
 const Set<String> _cartInvalidCodes = {'CART_EMPTY', 'CART_BUSINESS_MISMATCH'};
 
+/// The booking itself can no longer be moved from this screen.
+const Set<String> _bookingInvalidCodes = {
+  'BOOKING_CANNOT_RESCHEDULE',
+  'BOOKING_RESCHEDULE_PENDING',
+  'BOOKING_REQUEST_EXPIRED',
+  'BOOKING_NOT_FOUND',
+  'CUSTOMER_BUSINESS_NOT_FOUND',
+};
+
 class SlotBloc extends Bloc<SlotEvent, SlotState> {
   final SlotRepository _repository;
   final BookingsRepository _bookingsRepository;
 
-  String _businessId = '';
+  SlotSource? _source;
 
   SlotBloc(this._repository, {BookingsRepository? bookingsRepository})
     : _bookingsRepository = bookingsRepository ?? BookingsRepository(),
       super(const SlotInitial()) {
     on<SlotRequested>(_onSlotRequested);
+    on<SlotRescheduleRequested>(_onSlotRescheduleRequested);
     on<SlotDateSelected>(_onSlotDateSelected);
     on<SlotRunSelected>(_onSlotRunSelected);
     on<SlotSelectionCleared>(_onSlotSelectionCleared);
@@ -43,14 +55,38 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
     SlotRequested event,
     Emitter<SlotState> emit,
   ) async {
-    _businessId = event.businessId;
+    _source = CartSlotSource(event.businessId);
+    await _loadFirst(emit);
+  }
+
+  Future<void> _onSlotRescheduleRequested(
+    SlotRescheduleRequested event,
+    Emitter<SlotState> emit,
+  ) async {
+    _source = RescheduleSlotSource(event.bookingId);
+    await _loadFirst(emit);
+  }
+
+  /// One grid fetch from whichever endpoint [_source] points at.
+  Future<SlotModel> _fetch({String? date}) => switch (_source!) {
+    CartSlotSource(:final businessId) => _repository.getSlots(
+      businessId,
+      date: date,
+    ),
+    RescheduleSlotSource(:final bookingId) => _repository.getRescheduleSlots(
+      bookingId,
+      date: date,
+    ),
+  };
+
+  Future<void> _loadFirst(Emitter<SlotState> emit) async {
     emit(const SlotLoading());
     try {
       // No date is sent on the first load so the backend defaults to today.
-      final model = await _repository.getSlots(event.businessId);
+      final model = await _fetch();
       emit(SlotLoaded(model: model, selectedDate: model.window.selectedDate));
     } on ApiException catch (e) {
-      emit(SlotFailure(message: e.message));
+      emit(SlotFailure(message: e.message, code: e.code));
     } catch (e) {
       emit(SlotFailure(message: e.toString()));
     }
@@ -97,15 +133,46 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
   /// cart total or a chip's status may have changed.
   Future<void> _loadDate(String date, Emitter<SlotState> emit) async {
     try {
-      final model = await _repository.getSlots(_businessId, date: date);
+      final model = await _fetch(date: date);
       final latest = state;
       // Drop the response if the customer has since picked another date.
       if (latest is! SlotLoaded || latest.selectedDate != date) return;
       emit(latest.copyWith(model: model, isTimesLoading: false));
     } on ApiException catch (e) {
+      if (e.code == 'SLOT_DATE_OUT_OF_WINDOW') {
+        await _reloadToday(emit, date, e.message);
+        return;
+      }
       _emitTimesError(emit, date, e.message);
     } catch (e) {
       _emitTimesError(emit, date, e.toString());
+    }
+  }
+
+  /// [date] fell outside the booking window (it rolled over since the strip
+  /// was loaded). Reload without a date so the shop's today is selected.
+  Future<void> _reloadToday(
+    Emitter<SlotState> emit,
+    String date,
+    String message,
+  ) async {
+    try {
+      final model = await _fetch();
+      final latest = state;
+      if (latest is! SlotLoaded || latest.selectedDate != date) return;
+      emit(
+        latest.copyWith(
+          model: model,
+          selectedDate: model.window.selectedDate,
+          isDayClosed: false,
+          isTimesLoading: false,
+          selectedStart: null,
+        ),
+      );
+    } on ApiException catch (e) {
+      _emitTimesError(emit, date, e.message);
+    } catch (_) {
+      _emitTimesError(emit, date, message);
     }
   }
 
@@ -154,17 +221,31 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
         isSubmitting: true,
         submitError: null,
         isCartInvalid: false,
+        rescheduled: null,
+        isBookingInvalid: false,
       ),
     );
 
     try {
-      final booking = await _bookingsRepository.createBooking(
-        slots: slots,
-        staffId: current.selectedStaffId,
-      );
-      final latest = state;
-      if (latest is! SlotLoaded) return;
-      emit(latest.copyWith(isSubmitting: false, createdBooking: booking));
+      switch (_source!) {
+        case CartSlotSource():
+          final booking = await _bookingsRepository.createBooking(
+            slots: slots,
+            staffId: current.selectedStaffId,
+          );
+          final latest = state;
+          if (latest is! SlotLoaded) return;
+          emit(latest.copyWith(isSubmitting: false, createdBooking: booking));
+        case RescheduleSlotSource(:final bookingId):
+          final result = await _bookingsRepository.rescheduleBooking(
+            bookingId,
+            slots: slots,
+            staffId: current.selectedStaffId,
+          );
+          final latest = state;
+          if (latest is! SlotLoaded) return;
+          emit(latest.copyWith(isSubmitting: false, rescheduled: result));
+      }
     } on ApiException catch (e) {
       await _emitSubmitFailure(emit, e.code, e.message);
     } catch (e) {
@@ -218,6 +299,7 @@ class SlotBloc extends Bloc<SlotEvent, SlotState> {
         isSubmitting: false,
         submitError: message,
         isCartInvalid: code != null && _cartInvalidCodes.contains(code),
+        isBookingInvalid: code != null && _bookingInvalidCodes.contains(code),
       ),
     );
   }

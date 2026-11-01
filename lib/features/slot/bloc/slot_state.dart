@@ -1,5 +1,6 @@
 import 'package:equatable/equatable.dart';
 import 'package:noq/features/bookings/data/booking_created_model.dart';
+import 'package:noq/features/bookings/data/booking_rescheduled_model.dart';
 import 'package:noq/features/slot/data/slot_math.dart';
 import 'package:noq/features/slot/data/slot_model.dart';
 
@@ -63,6 +64,15 @@ class SlotLoaded extends SlotState {
   /// the confirmation. The cart is empty by then, so there is no going back.
   final BookingCreatedModel? createdBooking;
 
+  /// Set once a reschedule call succeeds. The screen listens for this; see
+  /// [BookingRescheduledModel.outcome] for whether the booking actually moved.
+  final BookingRescheduledModel? rescheduled;
+
+  /// True when [submitError] means this booking can no longer be moved from
+  /// here (not confirmed any more, a request already waiting, expired, gone, or
+  /// the shop went private). The screen leaves; the caller refreshes.
+  final bool isBookingInvalid;
+
   const SlotLoaded({
     required this.model,
     required this.selectedDate,
@@ -75,6 +85,8 @@ class SlotLoaded extends SlotState {
     this.submitError,
     this.isCartInvalid = false,
     this.createdBooking,
+    this.rescheduled,
+    this.isBookingInvalid = false,
   });
 
   SlotLoaded copyWith({
@@ -89,6 +101,8 @@ class SlotLoaded extends SlotState {
     Object? submitError = _unset,
     bool? isCartInvalid,
     Object? createdBooking = _unset,
+    Object? rescheduled = _unset,
+    bool? isBookingInvalid,
   }) {
     return SlotLoaded(
       model: model ?? this.model,
@@ -112,6 +126,10 @@ class SlotLoaded extends SlotState {
       createdBooking: identical(createdBooking, _unset)
           ? this.createdBooking
           : createdBooking as BookingCreatedModel?,
+      rescheduled: identical(rescheduled, _unset)
+          ? this.rescheduled
+          : rescheduled as BookingRescheduledModel?,
+      isBookingInvalid: isBookingInvalid ?? this.isBookingInvalid,
     );
   }
 
@@ -168,14 +186,20 @@ class SlotLoaded extends SlotState {
     submitError,
     isCartInvalid,
     createdBooking,
+    rescheduled,
+    isBookingInvalid,
   ];
 }
 
 class SlotFailure extends SlotState {
   final String message;
 
-  const SlotFailure({required this.message});
+  /// The API error code, so the screen can tell a booking that can no longer
+  /// be rescheduled from a network error.
+  final String? code;
+
+  const SlotFailure({required this.message, this.code});
 
   @override
-  List<Object?> get props => [message];
+  List<Object?> get props => [message, code];
 }

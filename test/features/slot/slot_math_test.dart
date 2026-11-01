@@ -33,13 +33,11 @@ void main() {
       expect(count(45), 1, reason: 'exactly 45');
       expect(count(46), 2, reason: 'exceeds 45');
       expect(count(60), 2, reason: 'one chip only covers 45');
-      expect(
-        count(70),
-        2,
-        reason: '2*30 + 15 = 75 >= 70 — buffer counted once',
-      );
-      expect(count(80), 3, reason: '75 < 80');
-      expect(count(90), 3, reason: '75 < 90');
+      // Every cell carries its own buffer: two cells cover 2 * 45 = 90.
+      expect(count(70), 2, reason: '2 * 45 = 90 >= 70');
+      expect(count(80), 2, reason: '2 * 45 = 90 >= 80');
+      expect(count(90), 2, reason: 'exactly 90 — the overview example');
+      expect(count(91), 3, reason: 'exceeds 90');
     });
 
     test('buffer 0', () {
@@ -50,8 +48,8 @@ void main() {
     test('different block size (block 20, buffer 10)', () {
       expect(count(30, block: 20, buffer: 10), 1); // 20 + 10 = 30
       expect(count(31, block: 20, buffer: 10), 2);
-      expect(count(50, block: 20, buffer: 10), 2); // 2*20 + 10 = 50
-      expect(count(51, block: 20, buffer: 10), 3);
+      expect(count(60, block: 20, buffer: 10), 2); // 2 * (20 + 10) = 60
+      expect(count(61, block: 20, buffer: 10), 3);
     });
 
     test('degenerate blockMinutes: 0 guard returns 1', () {

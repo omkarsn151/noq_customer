@@ -1,5 +1,54 @@
 import 'package:noq/features/categories/data/category_model.dart';
 
+/// The signed-in customer, for the Home header.
+class HomeUserModel {
+  final String id;
+  final String fullName;
+  final String firstName;
+
+  /// Null when the customer has no photo.
+  final String? photoUrl;
+
+  const HomeUserModel({
+    required this.id,
+    required this.fullName,
+    required this.firstName,
+    required this.photoUrl,
+  });
+
+  factory HomeUserModel.fromJson(Map<String, dynamic> json) => HomeUserModel(
+    id: json['id'] as String? ?? '',
+    fullName: json['full_name'] as String? ?? '',
+    firstName: json['first_name'] as String? ?? '',
+    photoUrl: json['photo_url'] as String?,
+  );
+}
+
+/// The customer's location, for the Home header.
+class HomeLocationModel {
+  /// Ready to show as is, e.g. 'Koramangala, Bengaluru'.
+  final String label;
+
+  final String area;
+  final String city;
+  final String state;
+
+  const HomeLocationModel({
+    required this.label,
+    required this.area,
+    required this.city,
+    required this.state,
+  });
+
+  factory HomeLocationModel.fromJson(Map<String, dynamic> json) =>
+      HomeLocationModel(
+        label: json['label'] as String? ?? '',
+        area: json['area'] as String? ?? '',
+        city: json['city'] as String? ?? '',
+        state: json['state'] as String? ?? '',
+      );
+}
+
 /// The shop on the Up Next card.
 class UpNextBusinessModel {
   final String id;
@@ -271,6 +320,11 @@ class HomeNearbyModel {
 
 /// Payload of GET /customer/home — the whole Home tab, in screen order.
 class HomeModel {
+  final HomeUserModel user;
+
+  /// Null when the server sends no location — hide the location row.
+  final HomeLocationModel? location;
+
   /// Null when the customer has nothing coming up — hide the card.
   final UpNextModel? upNext;
 
@@ -279,6 +333,8 @@ class HomeModel {
   final HomeNearbyModel nearby;
 
   const HomeModel({
+    required this.user,
+    required this.location,
     required this.upNext,
     required this.categories,
     required this.specialOffers,
@@ -286,8 +342,13 @@ class HomeModel {
   });
 
   factory HomeModel.fromJson(Map<String, dynamic> json) {
+    final location = json['location'] as Map<String, dynamic>?;
     final upNext = json['up_next'] as Map<String, dynamic>?;
     return HomeModel(
+      user: HomeUserModel.fromJson(
+        json['user'] as Map<String, dynamic>? ?? const {},
+      ),
+      location: location == null ? null : HomeLocationModel.fromJson(location),
       upNext: upNext == null ? null : UpNextModel.fromJson(upNext),
       categories: HomeCategoriesModel.fromJson(
         json['categories'] as Map<String, dynamic>? ?? const {},
@@ -302,6 +363,8 @@ class HomeModel {
   }
 
   HomeModel copyWith({HomeNearbyModel? nearby}) => HomeModel(
+    user: user,
+    location: location,
     upNext: upNext,
     categories: categories,
     specialOffers: specialOffers,

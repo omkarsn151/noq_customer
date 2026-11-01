@@ -18,6 +18,13 @@ import 'package:noq/features/booking_detials/presentation/widgets/info_row.dart'
 import 'package:noq/features/booking_detials/presentation/widgets/manage_booking_card.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/payment_card.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/verification_code_card.dart';
+import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
+import 'package:noq/features/bookings/bloc/bookings_event.dart';
+import 'package:noq/features/bookings/bloc/cancel_booking_bloc.dart';
+import 'package:noq/features/bookings/data/booking_tab.dart';
+import 'package:noq/features/bookings/bloc/cancel_booking_state.dart';
+import 'package:noq/features/bookings/presentation/cancel_booking_flow.dart';
+import 'package:noq/features/bookings/presentation/cancel_booking_listener.dart';
 
 class BookingDetailsScreen extends StatefulWidget {
   final String bookingId;
@@ -44,28 +51,44 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       state.bookingId == widget.bookingId;
 
   Future<void> _reschedule() async {
-    await context.push('/reschedule-slot');
+    final changed = await context.push<bool>('/reschedule/${widget.bookingId}');
+    if (!mounted) return;
     // The booking may have moved or gained a pending request.
-    if (mounted) _load();
+    _load();
+    // The list may not be the screen underneath, so refresh it explicitly.
+    if (changed == true) {
+      context.read<BookingsBloc>().add(
+        const BookingsRefreshRequested(tab: BookingTab.upcoming),
+      );
+    }
   }
+
+  void _cancel() => runCancelBooking(context, bookingId: widget.bookingId);
 
   @override
   Widget build(BuildContext context) {
-    return BlocConsumer<BookingDetailsBloc, BookingDetailsState>(
-      listenWhen: (previous, current) =>
-          _isCurrent(current) && current.status != previous.status,
-      listener: (context, state) {
-        if (state.status == BookingDetailsStatus.notFound) {
-          // Unknown or somebody else's booking — back to the list, no error page.
-          AppSnackbar.show(
-            context,
-            message: state.message,
-            type: AppSnackBarType.error,
-          );
-          context.pop();
-        }
-      },
-      builder: (context, state) => _buildScaffold(state),
+    // After a cancel (or a stale failure) reload, so the Cancellation section
+    // appears and Manage Booking hides itself from the server's flags.
+    return CancelBookingListener(
+      isRelevant: (id) => id == widget.bookingId,
+      onCancelled: (_) => _load(),
+      onStale: _load,
+      child: BlocConsumer<BookingDetailsBloc, BookingDetailsState>(
+        listenWhen: (previous, current) =>
+            _isCurrent(current) && current.status != previous.status,
+        listener: (context, state) {
+          if (state.status == BookingDetailsStatus.notFound) {
+            // Unknown or somebody else's booking — back to the list, no error page.
+            AppSnackbar.show(
+              context,
+              message: state.message,
+              type: AppSnackBarType.error,
+            );
+            context.pop();
+          }
+        },
+        builder: (context, state) => _buildScaffold(state),
+      ),
     );
   }
 
@@ -86,6 +109,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
               child: _BookingDetailsBody(
                 details: details,
                 onReschedule: _reschedule,
+                onCancel: _cancel,
               ),
             ),
           ),
@@ -105,10 +129,12 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 class _BookingDetailsBody extends StatelessWidget {
   final BookingDetailsModel details;
   final VoidCallback onReschedule;
+  final VoidCallback onCancel;
 
   const _BookingDetailsBody({
     required this.details,
     required this.onReschedule,
+    required this.onCancel,
   });
 
   @override
@@ -214,20 +240,63 @@ class _BookingDetailsBody extends StatelessWidget {
         ),
         SizedBox(height: 1.5.h),
         PaymentCard(payment: details.payment),
+        if (booking.hasPendingReschedule) ...[
+          SizedBox(height: 1.5.h),
+          const _PendingRescheduleBanner(),
+        ],
         if (details.actions.any) ...[
           SizedBox(height: 1.5.h),
-          ManageBookingCard(
-            actions: details.actions,
-            hasReviewed: booking.hasReviewed,
-            onReschedule: onReschedule,
-            // TODO: wire to the cancel API once it is specified.
-            onCancel: () {},
-            // TODO: open the review flow once it is specified.
-            onReview: () {},
+          // Scoped so only this card rebuilds while the cancel is in flight.
+          BlocSelector<CancelBookingBloc, CancelBookingState, bool>(
+            selector: (state) =>
+                state is CancelBookingInProgress &&
+                state.bookingId == booking.id,
+            builder: (context, isCancelling) => ManageBookingCard(
+              actions: details.actions,
+              hasReviewed: booking.hasReviewed,
+              onReschedule: onReschedule,
+              onCancel: onCancel,
+              isCancelling: isCancelling,
+              // TODO: open the review flow once it is specified.
+              onReview: () {},
+            ),
           ),
         ],
         SizedBox(height: 1.5.h),
       ],
+    );
+  }
+}
+
+/// Shown while a customer request waits on the shop; the times above are still
+/// the booking's current ones. Matches the list tile's badge.
+class _PendingRescheduleBanner extends StatelessWidget {
+  const _PendingRescheduleBanner();
+
+  @override
+  Widget build(BuildContext context) {
+    return Container(
+      width: double.infinity,
+      padding: EdgeInsets.symmetric(horizontal: 3.w, vertical: 1.2.h),
+      decoration: BoxDecoration(
+        color: AppColors.orange.withValues(alpha: 0.10),
+        borderRadius: BorderRadius.circular(12.sp),
+      ),
+      child: Row(
+        children: [
+          Icon(Icons.schedule, size: 15.sp, color: AppColors.orange),
+          SizedBox(width: 2.w),
+          Expanded(
+            child: Text(
+              'Reschedule requested — waiting for the shop',
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                color: AppColors.orange,
+                fontWeight: FontWeight.w600,
+              ),
+            ),
+          ),
+        ],
+      ),
     );
   }
 }

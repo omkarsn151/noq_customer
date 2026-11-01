@@ -19,4 +19,15 @@ class SlotRepository {
     final data = response.data['data'] as Map<String, dynamic>;
     return SlotModel.fromJson(data);
   }
+
+  /// Reschedule grid for an existing booking. Same payload as [getSlots], so it
+  /// parses into [SlotModel]; duration and price come from the booking's frozen
+  /// services rather than the cart. Omitting [date] defaults to the shop's today.
+  Future<SlotModel> getRescheduleSlots(String bookingId, {String? date}) async {
+    final response = await _dioClient.get(
+      '${ApiEndpoints.getRescheduleSlots}/$bookingId/slots',
+      queryParameters: date == null ? null : {'date': date},
+    );
+    return SlotModel.fromJson(response.data['data'] as Map<String, dynamic>);
+  }
 }

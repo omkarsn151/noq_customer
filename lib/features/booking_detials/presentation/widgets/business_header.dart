@@ -2,7 +2,6 @@ import 'package:flutter/material.dart';
 import 'package:sizer/sizer.dart';
 import 'package:url_launcher/url_launcher.dart';
 import 'package:noq/core/common/app_snackbar.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
 /// The shop strip. Each optional line is hidden when its value is null.
@@ -59,11 +58,15 @@ class BusinessHeader extends StatelessWidget {
     final captionStyle = textTheme.bodySmall?.copyWith(
       color: AppColors.textSecondary,
     );
-    final placeholder = Image.asset(
-      AppAssets.businessThumbnail,
+    final placeholder = Container(
       width: 22.w,
       height: 22.w,
-      fit: BoxFit.cover,
+      color: AppColors.borderLight,
+      child: Icon(
+        Icons.storefront_outlined,
+        size: 24.sp,
+        color: AppColors.textSecondary,
+      ),
     );
 
     return InkWell(

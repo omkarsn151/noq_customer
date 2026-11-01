@@ -17,6 +17,16 @@ class SlotRequested extends SlotEvent {
   List<Object?> get props => [businessId];
 }
 
+/// Loads the reschedule grid for an existing booking.
+class SlotRescheduleRequested extends SlotEvent {
+  final String bookingId;
+
+  const SlotRescheduleRequested(this.bookingId);
+
+  @override
+  List<Object?> get props => [bookingId];
+}
+
 class SlotDateSelected extends SlotEvent {
   final SlotDate date;
 
@@ -52,8 +62,9 @@ class SlotStaffSelected extends SlotEvent {
   List<Object?> get props => [staffId];
 }
 
-/// The customer tapped Proceed to Checkout. The selected run and staff are read
-/// off the state, so this carries no payload.
+/// The customer tapped Proceed to Checkout (cart mode) or Confirm New Slot
+/// (reschedule mode). The selected run and staff are read off the state, so
+/// this carries no payload.
 class SlotBookingSubmitted extends SlotEvent {
   const SlotBookingSubmitted();
 }

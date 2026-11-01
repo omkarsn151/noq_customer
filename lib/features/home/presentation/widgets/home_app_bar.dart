@@ -1,7 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:noq/core/common/app_search_field.dart';
+import 'package:noq/features/home/bloc/home_bloc.dart';
+import 'package:noq/features/home/bloc/home_state.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
 
@@ -34,45 +37,9 @@ class HomeAppBar extends StatelessWidget {
                 Row(
                   crossAxisAlignment: CrossAxisAlignment.start,
                   children: [
-                    Expanded(
-                      child: Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            'Hello Rohan',
-                            style: Theme.of(context).textTheme.bodySmall
-                                ?.copyWith(
-                                  fontWeight: FontWeight.w600,
-                                  letterSpacing: 0.5,
-                                  color: AppColors.background.withValues(
-                                    alpha: 0.5,
-                                  ),
-                                ),
-                          ),
-                          SizedBox(height: 0.5.h),
-                          Row(
-                            children: [
-                              Icon(
-                                Icons.location_on_rounded,
-                                color: AppColors.background,
-                                size: 16.sp,
-                              ),
-                              SizedBox(width: 1.w),
-                              Text(
-                                'San Francisco, CA',
-                                style: Theme.of(context).textTheme.bodyMedium
-                                    ?.copyWith(
-                                      fontWeight: FontWeight.w600,
-                                      color: AppColors.background,
-                                    ),
-                              ),
-                            ],
-                          ),
-                        ],
-                      ),
-                    ),
+                    const Expanded(child: _Greeting()),
                     InkWell(
-                      onTap: () {},
+                      onTap: () => context.push('/favorites'),
                       child: Icon(
                         Icons.favorite_border_rounded,
                         color: AppColors.background,
@@ -120,6 +87,62 @@ class HomeAppBar extends StatelessWidget {
           ),
         ],
       ),
+    );
+  }
+}
+
+class _Greeting extends StatelessWidget {
+  const _Greeting();
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocBuilder<HomeBloc, HomeState>(
+      // Keeps the last name and location on screen during a reload or failure.
+      buildWhen: (_, current) => current is HomeLoaded,
+      builder: (context, state) {
+        final home = state is HomeLoaded ? state.home : null;
+        final firstName = home?.user.firstName ?? '';
+        final locationLabel = home?.location?.label ?? '';
+        return Column(
+          crossAxisAlignment: CrossAxisAlignment.start,
+          children: [
+            Text(
+              firstName.isEmpty ? 'Hello' : 'Hello $firstName',
+              maxLines: 1,
+              overflow: TextOverflow.ellipsis,
+              style: Theme.of(context).textTheme.bodySmall?.copyWith(
+                fontWeight: FontWeight.w600,
+                letterSpacing: 0.5,
+                color: AppColors.background.withValues(alpha: 0.5),
+              ),
+            ),
+            if (locationLabel.isNotEmpty) ...[
+              SizedBox(height: 0.5.h),
+              Row(
+                children: [
+                  Icon(
+                    Icons.location_on_rounded,
+                    color: AppColors.background,
+                    size: 16.sp,
+                  ),
+                  SizedBox(width: 1.w),
+                  Flexible(
+                    child: Text(
+                      locationLabel,
+                      maxLines: 1,
+                      overflow: TextOverflow.ellipsis,
+                      style: Theme.of(context).textTheme.bodyMedium?.copyWith(
+                        fontWeight: FontWeight.w600,
+                        color: AppColors.background,
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ],
+        );
+      },
     );
   }
 }

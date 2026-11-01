@@ -8,6 +8,7 @@ import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
 import 'package:noq/features/bookings/bloc/bookings_event.dart';
 import 'package:noq/features/bookings/bloc/bookings_state.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
+import 'package:noq/features/bookings/presentation/cancel_booking_listener.dart';
 import 'package:noq/features/bookings/presentation/widgets/bookings_tile.dart';
 
 class BookingsScreen extends StatefulWidget {
@@ -52,28 +53,32 @@ class _BookingsScreenState extends State<BookingsScreen>
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppAppBar(title: 'Bookings', showLeading: false),
-      body: BlocBuilder<BookingsBloc, BookingsState>(
-        builder: (context, state) {
-          return Column(
-            crossAxisAlignment: CrossAxisAlignment.start,
-            children: [
-              AppPillTabBar(
-                controller: _tabController,
-                labels: [for (final tab in BookingTab.values) tab.label],
-              ),
-              SizedBox(height: 2.5.h),
-              Expanded(
-                child: TabBarView(
+      body: CancelBookingListener(
+        isRelevant: (_) => true,
+        refreshList: true,
+        child: BlocBuilder<BookingsBloc, BookingsState>(
+          builder: (context, state) {
+            return Column(
+              crossAxisAlignment: CrossAxisAlignment.start,
+              children: [
+                AppPillTabBar(
                   controller: _tabController,
-                  children: [
-                    for (final tab in BookingTab.values)
-                      _BookingsList(tab: tab, tabState: state.tabFor(tab)),
-                  ],
+                  labels: [for (final tab in BookingTab.values) tab.label],
                 ),
-              ),
-            ],
-          );
-        },
+                SizedBox(height: 2.5.h),
+                Expanded(
+                  child: TabBarView(
+                    controller: _tabController,
+                    children: [
+                      for (final tab in BookingTab.values)
+                        _BookingsList(tab: tab, tabState: state.tabFor(tab)),
+                    ],
+                  ),
+                ),
+              ],
+            );
+          },
+        ),
       ),
     );
   }
@@ -146,7 +151,8 @@ class _BookingsList extends StatelessWidget {
         child: ListView.separated(
           padding: EdgeInsets.fromLTRB(5.w, 0, 5.w, 2.h),
           physics: const AlwaysScrollableScrollPhysics(),
-          itemCount: tabState.bookings.length + (tabState.isLoadingMore ? 1 : 0),
+          itemCount:
+              tabState.bookings.length + (tabState.isLoadingMore ? 1 : 0),
           separatorBuilder: (_, _) => SizedBox(height: 2.h),
           itemBuilder: (context, index) {
             if (index == tabState.bookings.length) {
@@ -190,9 +196,9 @@ class _BookingsMessage extends StatelessWidget {
             child: Text(
               message,
               textAlign: TextAlign.center,
-              style: Theme.of(context).textTheme.bodyMedium?.copyWith(
-                color: AppColors.textSecondary,
-              ),
+              style: Theme.of(
+                context,
+              ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
             ),
           ),
           SizedBox(height: 1.5.h),

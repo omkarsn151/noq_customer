@@ -10,7 +10,6 @@ import 'package:noq/features/home/data/home_model.dart';
 import 'package:noq/features/home/presentation/widgets/home_app_bar.dart';
 import 'package:noq/features/home/presentation/widgets/up_next_section.dart';
 import 'package:noq/features/home/presentation/widgets/categories_section.dart';
-import 'package:noq/features/home/presentation/widgets/special_offers_section.dart';
 import 'package:noq/features/home/presentation/widgets/nearby_section.dart';
 
 class HomeScreen extends StatefulWidget {
@@ -101,11 +100,6 @@ class _HomeContent extends StatelessWidget {
         ],
         if (home.categories.items.isNotEmpty) ...[
           CategoriesSection(categories: home.categories),
-          SizedBox(height: 3.h),
-        ],
-        // Always empty until promotional banners land on the backend.
-        if (home.specialOffers.items.isNotEmpty) ...[
-          const SpecialOffersSection(),
           SizedBox(height: 3.h),
         ],
         NearbySection(nearby: home.nearby),

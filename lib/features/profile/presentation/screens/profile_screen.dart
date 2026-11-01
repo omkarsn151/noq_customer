@@ -1,14 +1,33 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/auth/auth_session.dart';
 import 'package:noq/core/common/app_alert_dialog.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/profile/bloc/profile_bloc.dart';
+import 'package:noq/features/profile/bloc/profile_event.dart';
+import 'package:noq/features/profile/repository/profile_repository.dart';
 import 'package:noq/features/profile/presentation/widgets/profile_header.dart';
 import 'package:noq/features/profile/presentation/widgets/profile_section_card.dart';
 
+/// Owns its [ProfileBloc] rather than sharing an app-wide one, so a profile
+/// never outlives the session it was loaded for.
 class ProfileScreen extends StatelessWidget {
   const ProfileScreen({super.key});
+
+  @override
+  Widget build(BuildContext context) {
+    return BlocProvider<ProfileBloc>(
+      create: (_) =>
+          ProfileBloc(ProfileRepository())..add(const ProfileRequested()),
+      child: const _ProfileView(),
+    );
+  }
+}
+
+class _ProfileView extends StatelessWidget {
+  const _ProfileView();
 
   Future<void> _handleLogout(BuildContext context) async {
     final confirmed = await AppAlertDialog.show(
@@ -45,9 +64,10 @@ class ProfileScreen extends StatelessWidget {
                     label: 'Bookings',
                     onTap: () => context.go('/bookings'),
                   ),
-                  const ProfileMenuItem(
+                  ProfileMenuItem(
                     icon: Icons.favorite_border_rounded,
                     label: 'Favorites',
+                    onTap: () => context.push('/favorites'),
                   ),
                 ],
               ),

@@ -1,7 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
-import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
@@ -13,11 +12,15 @@ class CartItemTile extends StatelessWidget {
 
   const CartItemTile({super.key, required this.item, required this.isRemoving});
 
-  Widget _fallbackThumbnail() => Image.asset(
-    AppAssets.serviceThumbnail,
+  Widget _fallbackThumbnail() => Container(
     width: 15.w,
     height: 20.w,
-    fit: BoxFit.cover,
+    color: AppColors.borderLight,
+    child: Icon(
+      Icons.design_services_rounded,
+      size: 20.sp,
+      color: AppColors.textSecondary,
+    ),
   );
 
   @override

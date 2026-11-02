@@ -42,11 +42,6 @@ class BookingSuccessScreen extends StatelessWidget {
                 label: 'View My Bookings',
                 onPressed: () => context.go('/bookings'),
               ),
-              SizedBox(height: 1.h),
-              TextButton(
-                onPressed: () => context.go('/home'),
-                child: const Text('Done'),
-              ),
             ],
           ),
         ),

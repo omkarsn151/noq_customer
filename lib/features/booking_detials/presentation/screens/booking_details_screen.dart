@@ -67,11 +67,13 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
 
   @override
   Widget build(BuildContext context) {
-    // After a cancel (or a stale failure) reload, so the Cancellation section
-    // appears and Manage Booking hides itself from the server's flags.
+    // After a cancel, leave for the Cancelled tab. The query covers a Bookings
+    // tab that was never opened; a live one switches itself. After a stale
+    // failure reload, so Manage Booking hides itself from the server's flags.
     return CancelBookingListener(
       isRelevant: (id) => id == widget.bookingId,
-      onCancelled: (_) => _load(),
+      onCancelled: (_) =>
+          context.go('/bookings?tab=${BookingTab.cancelled.value}'),
       onStale: _load,
       child: BlocConsumer<BookingDetailsBloc, BookingDetailsState>(
         listenWhen: (previous, current) =>

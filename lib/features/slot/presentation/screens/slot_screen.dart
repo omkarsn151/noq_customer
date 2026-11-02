@@ -7,8 +7,10 @@ import 'package:noq/core/common/app_button.dart';
 import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
+import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
+import 'package:noq/features/bookings/bloc/bookings_event.dart';
 import 'package:noq/features/bookings/data/booking_rescheduled_model.dart';
-import 'package:noq/features/bookings/presentation/screens/booking_success_screen.dart';
+import 'package:noq/features/bookings/data/booking_tab.dart';
 import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
@@ -113,13 +115,16 @@ class _SlotScreenState extends State<SlotScreen> {
           // The create call consumed the cart, so pull the empty one to clear
           // the Cart tab and its sticky bar.
           context.read<CartBloc>().add(CartItemsRequested());
-          // Replace rather than push: going back to a slot grid for a cart that
-          // no longer exists would only produce CART_EMPTY.
-          Navigator.of(context).pushReplacement(
-            MaterialPageRoute(
-              builder: (_) => BookingSuccessScreen(booking: booking),
-            ),
+          // The Bookings tab stays alive in the shell, so it won't reload the
+          // new booking on its own.
+          context.read<BookingsBloc>().add(
+            BookingsRefreshRequested(tab: BookingTab.values.first),
           );
+          // Replace rather than push: going back to a slot grid for a cart that
+          // no longer exists would only produce CART_EMPTY. This must be a
+          // router route: a raw Navigator route sits on top of the shell, out
+          // of go_router's reach, so `context.go` could not leave it.
+          context.pushReplacement('/booking-success', extra: booking);
           return;
         }
 

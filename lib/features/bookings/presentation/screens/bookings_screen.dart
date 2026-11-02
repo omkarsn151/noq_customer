@@ -12,7 +12,11 @@ import 'package:noq/features/bookings/presentation/cancel_booking_listener.dart'
 import 'package:noq/features/bookings/presentation/widgets/bookings_tile.dart';
 
 class BookingsScreen extends StatefulWidget {
-  const BookingsScreen({super.key});
+  /// The tab shown on first build. The shell keeps this screen alive, so later
+  /// changes are ignored.
+  final BookingTab initialTab;
+
+  const BookingsScreen({super.key, this.initialTab = BookingTab.upcoming});
 
   @override
   State<BookingsScreen> createState() => _BookingsScreenState();
@@ -22,6 +26,7 @@ class _BookingsScreenState extends State<BookingsScreen>
     with SingleTickerProviderStateMixin {
   late final TabController _tabController = TabController(
     length: BookingTab.values.length,
+    initialIndex: widget.initialTab.index,
     vsync: this,
   );
 
@@ -30,7 +35,7 @@ class _BookingsScreenState extends State<BookingsScreen>
     super.initState();
     _tabController.addListener(_onTabChanged);
     context.read<BookingsBloc>().add(
-      BookingsRequested(tab: BookingTab.values.first, refresh: true),
+      BookingsRequested(tab: widget.initialTab, refresh: true),
     );
   }
 
@@ -56,6 +61,9 @@ class _BookingsScreenState extends State<BookingsScreen>
       body: CancelBookingListener(
         isRelevant: (_) => true,
         refreshList: true,
+        // Set the index, not animateTo: this screen may be hidden under
+        // details, where tickers are muted.
+        onCancelled: (_) => _tabController.index = BookingTab.cancelled.index,
         child: BlocBuilder<BookingsBloc, BookingsState>(
           builder: (context, state) {
             return Column(

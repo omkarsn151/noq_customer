@@ -4,6 +4,9 @@ import 'package:noq/features/auth/request_otp/presentation/screens/login_screen.
 import 'package:noq/features/auth/verify_otp/presentation/screens/otp_verification_scren.dart';
 import 'package:noq/features/auth/register/presentation/screens/register_screen.dart';
 import 'package:noq/features/booking_detials/presentation/screens/booking_details_screen.dart';
+import 'package:noq/features/bookings/data/booking_created_model.dart';
+import 'package:noq/features/bookings/data/booking_tab.dart';
+import 'package:noq/features/bookings/presentation/screens/booking_success_screen.dart';
 import 'package:noq/features/bookings/presentation/screens/bookings_screen.dart';
 import 'package:noq/features/business_list/presentation/screens/business_list_screen.dart';
 import 'package:noq/features/business_details/presentation/screen/business_details_screen.dart';
@@ -113,6 +116,12 @@ class AppRouter {
       ),
 
       GoRoute(
+        path: '/booking-success',
+        builder: (context, state) =>
+            BookingSuccessScreen(booking: state.extra as BookingCreatedModel),
+      ),
+
+      GoRoute(
         path: '/booking-details/:id',
         builder: (context, state) =>
             BookingDetailsScreen(bookingId: state.pathParameters['id']!),
@@ -167,7 +176,11 @@ class AppRouter {
             routes: [
               GoRoute(
                 path: '/bookings',
-                builder: (context, state) => const BookingsScreen(),
+                builder: (context, state) => BookingsScreen(
+                  initialTab:
+                      BookingTab.fromValue(state.uri.queryParameters['tab']) ??
+                      BookingTab.upcoming,
+                ),
               ),
             ],
           ),

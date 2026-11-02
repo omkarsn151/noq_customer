@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:noq/core/services/location_service.dart';
 import 'package:noq/core/services/secure_storage_service.dart';
 
 class AuthSession {
@@ -12,6 +13,7 @@ class AuthSession {
 
   static Future<void> logout() async {
     await SecureStorageService().clearTokens();
+    await LocationService().clear();
     _onLoggedOut?.call();
   }
 }

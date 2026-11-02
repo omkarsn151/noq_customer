@@ -45,8 +45,8 @@ class BusinessListBloc extends Bloc<BusinessListEvent, BusinessListState> {
     );
 
     try {
-      // Null when GPS is off or denied — the list is then best-rated first.
-      final position = await _locationService.getCurrentPosition();
+      // Null until Home has a position — the list is then best-rated first.
+      final position = await _locationService.getSavedLocation();
       final page = await _repository.getBusinesses(
         categoryId: event.categoryId,
         lat: position?.latitude,

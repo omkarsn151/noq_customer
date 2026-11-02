@@ -27,9 +27,9 @@ class BookingDetailsBloc
     );
 
     try {
-      // Null when GPS is off or denied — the call then goes out without
+      // Null until Home has a position — the call then goes out without
       // coordinates and only distance_km comes back null.
-      final position = await _locationService.getCurrentPosition();
+      final position = await _locationService.getSavedLocation();
       final details = await _repository.getBookingDetails(
         event.bookingId,
         lat: position?.latitude,

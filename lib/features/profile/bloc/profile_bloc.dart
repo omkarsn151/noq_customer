@@ -15,9 +15,7 @@ class ProfileBloc extends Bloc<ProfileEvent, ProfileState> {
     ProfileRequested event,
     Emitter<ProfileState> emit,
   ) async {
-    // Keep showing the last profile while refreshing, so revisiting the tab
-    // does not blank the header.
-    if (state is! ProfileLoaded) emit(const ProfileLoading());
+    emit(const ProfileLoading());
     try {
       final profile = await _repository.getProfile();
       emit(ProfileLoaded(profile: profile));

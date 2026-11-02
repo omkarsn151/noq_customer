@@ -12,11 +12,15 @@ class ServiceDetailsRequested extends ServiceDetailsEvent {
   final String businessId;
   final String serviceId;
 
+  /// Refresh without a spinner, for cart changes on the open service.
+  final bool silent;
+
   const ServiceDetailsRequested({
     required this.businessId,
     required this.serviceId,
+    this.silent = false,
   });
 
   @override
-  List<Object?> get props => [businessId, serviceId];
+  List<Object?> get props => [businessId, serviceId, silent];
 }

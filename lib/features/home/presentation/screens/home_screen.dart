@@ -32,7 +32,7 @@ class _HomeScreenState extends State<HomeScreen> {
       body: RefreshIndicator(
         color: AppColors.primary,
         onRefresh: () async =>
-            context.read<HomeBloc>().add(const HomeRequested(refresh: true)),
+            context.read<HomeBloc>().add(const HomeRequested()),
         child: SingleChildScrollView(
           physics: const AlwaysScrollableScrollPhysics(),
           child: Column(

@@ -39,9 +39,7 @@ class HomeBloc extends Bloc<HomeEvent, HomeState> {
     HomeRequested event,
     Emitter<HomeState> emit,
   ) async {
-    if (!event.refresh || state is! HomeLoaded) {
-      emit(const HomeLoading());
-    }
+    emit(const HomeLoading());
 
     try {
       // Null when GPS is off or denied — the call then goes out without

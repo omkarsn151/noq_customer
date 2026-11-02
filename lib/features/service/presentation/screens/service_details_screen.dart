@@ -35,11 +35,12 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
     _load();
   }
 
-  void _load() {
+  void _load({bool silent = false}) {
     context.read<ServiceDetailsBloc>().add(
       ServiceDetailsRequested(
         businessId: widget.businessId,
         serviceId: widget.serviceId,
+        silent: silent,
       ),
     );
   }
@@ -53,7 +54,7 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
       // Cart add/remove results for this service only.
       isRelevant: (serviceId) => serviceId == widget.serviceId,
       // Re-fetch so is_in_cart / cart_item_id are current for the button.
-      onChanged: (_) => _load(),
+      onChanged: (_) => _load(silent: true),
       child: BlocConsumer<ServiceDetailsBloc, ServiceDetailsState>(
         listenWhen: (previous, current) =>
             _isCurrent(current) && current.status != previous.status,

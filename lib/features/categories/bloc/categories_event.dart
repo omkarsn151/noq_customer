@@ -7,15 +7,9 @@ abstract class CategoriesEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load the first page. Ignored while loading or once loaded, unless
-/// [refresh] is set.
+/// Load the first page.
 class CategoriesRequested extends CategoriesEvent {
-  final bool refresh;
-
-  const CategoriesRequested({this.refresh = false});
-
-  @override
-  List<Object?> get props => [refresh];
+  const CategoriesRequested();
 }
 
 /// Append the next page once the list is scrolled near its end.

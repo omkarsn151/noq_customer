@@ -26,9 +26,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
   }
 
   void _load() {
-    context.read<CategoriesBloc>().add(
-      const CategoriesRequested(refresh: true),
-    );
+    context.read<CategoriesBloc>().add(const CategoriesRequested());
   }
 
   /// Requests the next page once the grid is scrolled near its end.

@@ -19,16 +19,9 @@ class BookingDetailsBloc
     BookingDetailsRequested event,
     Emitter<BookingDetailsState> emit,
   ) async {
-    // Keep the loaded booking on a reload of the same id (pull-to-refresh,
-    // back from reschedule) so the screen does not blank out.
-    final isReload =
-        state.bookingId == event.bookingId && state.details != null;
     emit(
       BookingDetailsState(
-        status: isReload
-            ? BookingDetailsStatus.success
-            : BookingDetailsStatus.loading,
-        details: isReload ? state.details : null,
+        status: BookingDetailsStatus.loading,
         bookingId: event.bookingId,
       ),
     );

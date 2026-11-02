@@ -16,19 +16,18 @@ class ServiceDetailsBloc
     ServiceDetailsRequested event,
     Emitter<ServiceDetailsState> emit,
   ) async {
-    // Keep the loaded service on a reload of the same id (e.g. after a cart
-    // change) so the screen does not blank out; start clean for a new one.
-    final isReload =
-        state.serviceId == event.serviceId && state.service != null;
-    emit(
-      ServiceDetailsState(
-        status: isReload
-            ? ServiceDetailsStatus.success
-            : ServiceDetailsStatus.loading,
-        service: isReload ? state.service : null,
-        serviceId: event.serviceId,
-      ),
-    );
+    final isSilent =
+        event.silent &&
+        state.serviceId == event.serviceId &&
+        state.service != null;
+    if (!isSilent) {
+      emit(
+        ServiceDetailsState(
+          status: ServiceDetailsStatus.loading,
+          serviceId: event.serviceId,
+        ),
+      );
+    }
 
     try {
       final service = await _repository.getServiceDetails(

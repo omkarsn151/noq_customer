@@ -7,15 +7,9 @@ abstract class HomeEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load the Home tab. With [refresh] (pull-to-refresh) the current content
-/// stays on screen until the new payload arrives.
+/// Load the Home tab.
 class HomeRequested extends HomeEvent {
-  final bool refresh;
-
-  const HomeRequested({this.refresh = false});
-
-  @override
-  List<Object?> get props => [refresh];
+  const HomeRequested();
 }
 
 /// A shop's heart was saved/cleared; patch its nearby card without a reload.

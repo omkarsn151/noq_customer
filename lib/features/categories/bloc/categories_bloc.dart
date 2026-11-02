@@ -16,13 +16,7 @@ class CategoriesBloc extends Bloc<CategoriesEvent, CategoriesState> {
     CategoriesRequested event,
     Emitter<CategoriesState> emit,
   ) async {
-    if (!event.refresh &&
-        (state.status == CategoriesStatus.success ||
-            state.status == CategoriesStatus.loading)) {
-      return;
-    }
-
-    emit(state.copyWith(status: CategoriesStatus.loading, message: ''));
+    emit(const CategoriesState(status: CategoriesStatus.loading));
 
     try {
       final page = await _repository.getCategories();

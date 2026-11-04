@@ -8,6 +8,7 @@ import 'package:noq/features/business_details/bloc/business_details_bloc.dart';
 import 'package:noq/features/business_details/bloc/business_details_event.dart';
 import 'package:noq/features/business_details/bloc/business_details_state.dart';
 import 'package:noq/features/business_details/data/business_details_model.dart';
+import 'package:noq/features/business_details/presentation/widgets/business_details_loading_widget.dart';
 import 'package:noq/features/business_details/presentation/widgets/business_header_section.dart';
 import 'package:noq/features/business_details/presentation/widgets/business_info_section.dart';
 import 'package:noq/features/business_details/presentation/widgets/customer_reviews_section.dart';
@@ -87,7 +88,7 @@ class _BusinessDetailsScreenState extends State<BusinessDetailsScreen> {
               onRetry: _load,
             );
           }
-          return const Center(child: CircularProgressIndicator());
+          return const BusinessDetailsLoadingWidget();
         },
       ),
     );

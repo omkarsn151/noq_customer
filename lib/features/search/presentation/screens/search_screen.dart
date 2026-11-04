@@ -1,21 +1,18 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
-import 'package:skeletonizer/skeletonizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_search_field.dart';
 import 'package:noq/core/utils/app_colors.dart';
-import 'package:noq/features/business_details/data/business_details_model.dart';
 import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
 import 'package:noq/features/search/bloc/search_bloc.dart';
 import 'package:noq/features/search/bloc/search_event.dart';
 import 'package:noq/features/search/bloc/search_state.dart';
-import 'package:noq/features/search/data/search_service_model.dart';
 import 'package:noq/features/search/presentation/widgets/quick_filters_section.dart';
 import 'package:noq/features/search/presentation/widgets/recent_searches_section.dart';
 import 'package:noq/features/search/presentation/widgets/search_businesses_section.dart';
 import 'package:noq/features/search/presentation/widgets/search_categories_section.dart';
-import 'package:noq/features/search/presentation/widgets/search_service_tile.dart';
+import 'package:noq/features/search/presentation/widgets/search_loading_widget.dart';
 import 'package:noq/features/search/presentation/widgets/search_services_section.dart';
 
 class SearchScreen extends StatefulWidget {
@@ -175,7 +172,7 @@ class _ResultsView extends StatelessWidget {
 
     switch (state.status) {
       case SearchStatus.loading:
-        return const _ResultsSkeleton();
+        return const SearchLoadingWidget();
       case SearchStatus.failure:
         return _SearchMessage(
           message: state.message,
@@ -210,33 +207,6 @@ class _ResultsView extends StatelessWidget {
           onSelected: onResultSelected,
         ),
       ],
-    );
-  }
-}
-
-/// Placeholder rows shaped like service results while a search is running.
-class _ResultsSkeleton extends StatelessWidget {
-  const _ResultsSkeleton();
-
-  static const _placeholder = SearchServiceItem(
-    id: '',
-    name: 'Service name placeholder',
-    durationMinutes: 30,
-    pricing: ServicePricing(currencyCode: 'INR', price: '000.00'),
-    thumbnailUrl: null,
-    business: SearchServiceBusiness(id: '', name: 'Shop name placeholder'),
-  );
-
-  @override
-  Widget build(BuildContext context) {
-    return Skeletonizer(
-      child: ListView.separated(
-        padding: EdgeInsets.fromLTRB(5.w, 2.5.h, 5.w, 0),
-        physics: const NeverScrollableScrollPhysics(),
-        itemCount: 5,
-        separatorBuilder: (_, _) => SizedBox(height: 3.h),
-        itemBuilder: (_, _) => const SearchServiceTile(service: _placeholder),
-      ),
     );
   }
 }

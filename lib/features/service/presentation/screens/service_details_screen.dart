@@ -10,6 +10,7 @@ import 'package:noq/features/service/bloc/service_details_bloc.dart';
 import 'package:noq/features/service/bloc/service_details_event.dart';
 import 'package:noq/features/service/bloc/service_details_state.dart';
 import 'package:noq/features/service/presentation/widgets/service_bottom_bar.dart';
+import 'package:noq/features/service/presentation/widgets/service_details_loading_widget.dart';
 import 'package:noq/features/service/presentation/widgets/service_gallery_section.dart';
 import 'package:noq/features/service/presentation/widgets/service_hero_section.dart';
 import 'package:noq/features/service/presentation/widgets/service_info_section.dart';
@@ -101,12 +102,16 @@ class _ServiceDetailsScreenState extends State<ServiceDetailsScreen> {
       );
     }
 
-    return Scaffold(
-      appBar: const AppAppBar(title: 'Service Details'),
-      body: _isCurrent(state) && state.status == ServiceDetailsStatus.failure
-          ? _ServiceDetailsMessage(message: state.message, onRetry: _load)
-          : const Center(child: CircularProgressIndicator()),
-    );
+    if (_isCurrent(state) && state.status == ServiceDetailsStatus.failure) {
+      return Scaffold(
+        appBar: const AppAppBar(title: 'Service Details'),
+        body: _ServiceDetailsMessage(message: state.message, onRetry: _load),
+      );
+    }
+
+    // No app bar: the skeleton mirrors the loaded page, whose back button
+    // sits on the hero image.
+    return const Scaffold(body: ServiceDetailsLoadingWidget());
   }
 }
 

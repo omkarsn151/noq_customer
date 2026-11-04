@@ -8,6 +8,7 @@ import 'package:noq/features/home/bloc/home_event.dart';
 import 'package:noq/features/home/bloc/home_state.dart';
 import 'package:noq/features/home/data/home_model.dart';
 import 'package:noq/features/home/presentation/widgets/home_app_bar.dart';
+import 'package:noq/features/home/presentation/widgets/home_loading_widget.dart';
 import 'package:noq/features/home/presentation/widgets/up_next_section.dart';
 import 'package:noq/features/home/presentation/widgets/categories_section.dart';
 import 'package:noq/features/home/presentation/widgets/nearby_section.dart';
@@ -70,10 +71,7 @@ class _HomeScreenState extends State<HomeScreen> {
                     );
                   }
 
-                  return const Padding(
-                    padding: EdgeInsets.symmetric(vertical: 48),
-                    child: Center(child: CircularProgressIndicator()),
-                  );
+                  return const HomeLoadingWidget();
                 },
               ),
             ],

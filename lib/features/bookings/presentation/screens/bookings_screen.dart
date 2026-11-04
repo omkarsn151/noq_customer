@@ -9,6 +9,7 @@ import 'package:noq/features/bookings/bloc/bookings_event.dart';
 import 'package:noq/features/bookings/bloc/bookings_state.dart';
 import 'package:noq/features/bookings/data/booking_tab.dart';
 import 'package:noq/features/bookings/presentation/cancel_booking_listener.dart';
+import 'package:noq/features/bookings/presentation/widgets/bookings_loading_widget.dart';
 import 'package:noq/features/bookings/presentation/widgets/bookings_tile.dart';
 
 class BookingsScreen extends StatefulWidget {
@@ -130,11 +131,11 @@ class _BookingsList extends StatelessWidget {
         if (!context.mounted) return;
         context.read<BookingsBloc>().add(BookingsRequested(tab: tab));
       });
-      return const Center(child: CircularProgressIndicator());
+      return const BookingsLoadingWidget();
     }
 
     if (tabState.status == BookingsTabStatus.loading) {
-      return const Center(child: CircularProgressIndicator());
+      return const BookingsLoadingWidget();
     }
 
     if (tabState.status == BookingsTabStatus.failure) {

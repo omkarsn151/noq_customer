@@ -6,6 +6,7 @@ import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/categories/bloc/categories_bloc.dart';
 import 'package:noq/features/categories/bloc/categories_event.dart';
 import 'package:noq/features/categories/bloc/categories_state.dart';
+import 'package:noq/features/categories/presentation/widgets/categories_loading_widget.dart';
 import 'package:noq/features/categories/presentation/widgets/category_card.dart';
 
 class CategoriesScreen extends StatefulWidget {
@@ -51,7 +52,7 @@ class _CategoriesScreenState extends State<CategoriesScreen> {
           switch (state.status) {
             case CategoriesStatus.initial:
             case CategoriesStatus.loading:
-              return const Center(child: CircularProgressIndicator());
+              return const CategoriesLoadingWidget();
             case CategoriesStatus.failure:
               return _CategoriesMessage(message: state.message, onRetry: _load);
             case CategoriesStatus.success:

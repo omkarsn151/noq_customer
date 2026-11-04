@@ -10,6 +10,7 @@ import 'package:noq/features/favorites/bloc/favorites_list_bloc.dart';
 import 'package:noq/features/favorites/bloc/favorites_list_event.dart';
 import 'package:noq/features/favorites/bloc/favorites_list_state.dart';
 import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
+import 'package:noq/features/favorites/presentation/widgets/favorites_loading_widget.dart';
 import 'package:noq/features/favorites/repository/favorites_repository.dart';
 import 'package:noq/features/home/presentation/widgets/business_card_widget.dart';
 
@@ -74,7 +75,7 @@ class _FavoritesView extends StatelessWidget {
             switch (state.status) {
               case FavoritesListStatus.initial:
               case FavoritesListStatus.loading:
-                return const Center(child: CircularProgressIndicator());
+                return const FavoritesLoadingWidget();
               case FavoritesListStatus.failure:
                 return _FavoritesMessage(
                   message: state.message,

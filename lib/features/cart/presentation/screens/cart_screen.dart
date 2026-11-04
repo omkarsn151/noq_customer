@@ -9,6 +9,7 @@ import 'package:noq/features/cart/bloc/cart_bloc.dart';
 import 'package:noq/features/cart/bloc/cart_event.dart';
 import 'package:noq/features/cart/bloc/cart_state.dart';
 import 'package:noq/features/cart/presentation/widgets/cart_content.dart';
+import 'package:noq/features/cart/presentation/widgets/cart_loading_widget.dart';
 
 class CartScreen extends StatefulWidget {
   const CartScreen({super.key});
@@ -50,7 +51,7 @@ class _CartScreenState extends State<CartScreen> {
       buildWhen: (previous, current) => current is! CartItemRemoveFailure,
       builder: (context, state) {
         if (state is CartLoading || state is CartInitial) {
-          return const Center(child: CircularProgressIndicator());
+          return const CartLoadingWidget();
         }
 
         if (state is CartFailure) {

@@ -10,6 +10,7 @@ import 'package:noq/features/booking_detials/bloc/booking_details_bloc.dart';
 import 'package:noq/features/booking_detials/bloc/booking_details_event.dart';
 import 'package:noq/features/booking_detials/bloc/booking_details_state.dart';
 import 'package:noq/features/booking_detials/data/booking_details_model.dart';
+import 'package:noq/features/booking_detials/presentation/widgets/booking_details_loading_widget.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/booking_notice_card.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/booking_status_card.dart';
 import 'package:noq/features/booking_detials/presentation/widgets/business_header.dart';
@@ -123,7 +124,7 @@ class _BookingDetailsScreenState extends State<BookingDetailsScreen> {
       appBar: const AppAppBar(title: 'Booking Details'),
       body: _isCurrent(state) && state.status == BookingDetailsStatus.failure
           ? _BookingDetailsMessage(message: state.message, onRetry: _load)
-          : const Center(child: CircularProgressIndicator()),
+          : const BookingDetailsLoadingWidget(),
     );
   }
 }

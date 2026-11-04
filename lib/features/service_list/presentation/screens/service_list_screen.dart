@@ -11,6 +11,7 @@ import 'package:noq/features/service_list/bloc/service_list_bloc.dart';
 import 'package:noq/features/service_list/bloc/service_list_event.dart';
 import 'package:noq/features/service_list/bloc/service_list_state.dart';
 import 'package:noq/features/service_list/presentation/widgets/service_category_section.dart';
+import 'package:noq/features/service_list/presentation/widgets/service_list_screen_loading_widget.dart';
 
 class ServiceListScreen extends StatefulWidget {
   final String businessId;
@@ -63,15 +64,15 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   Widget _buildContent() {
     return Column(
       children: [
-        Padding(
-          padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 1.5.h),
-          child: AppSearchField(
-            controller: _controller,
-            hintText: 'Search services...',
-            onChanged: (_) {},
-            onClear: _controller.clear,
-          ),
-        ),
+        // Padding(
+        //   padding: EdgeInsets.fromLTRB(5.w, 1.h, 5.w, 1.5.h),
+        //   child: AppSearchField(
+        //     controller: _controller,
+        //     hintText: 'Search services...',
+        //     onChanged: (_) {},
+        //     onClear: _controller.clear,
+        //   ),
+        // ),
         Expanded(
           child: BlocConsumer<ServiceListBloc, ServiceListState>(
             listenWhen: (previous, current) =>
@@ -97,14 +98,14 @@ class _ServiceListScreenState extends State<ServiceListScreen> {
   Widget _buildBody(ServiceListState state) {
     // The bloc is app-wide, so ignore another shop's sections.
     if (!_isCurrent(state)) {
-      return const Center(child: CircularProgressIndicator());
+      return const ServiceListScreenLoadingWidget();
     }
 
     switch (state.status) {
       case ServiceListStatus.initial:
       case ServiceListStatus.loading:
       case ServiceListStatus.notFound:
-        return const Center(child: CircularProgressIndicator());
+        return const ServiceListScreenLoadingWidget();
       case ServiceListStatus.failure:
         return _ServiceListMessage(message: state.message, onRetry: _load);
       case ServiceListStatus.success:

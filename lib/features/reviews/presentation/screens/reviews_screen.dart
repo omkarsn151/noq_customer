@@ -9,6 +9,7 @@ import 'package:noq/features/reviews/bloc/reviews_bloc.dart';
 import 'package:noq/features/reviews/bloc/reviews_event.dart';
 import 'package:noq/features/reviews/bloc/reviews_state.dart';
 import 'package:noq/features/reviews/presentation/widgets/review_tile.dart';
+import 'package:noq/features/reviews/presentation/widgets/reviews_loading_widget.dart';
 
 class ReviewsScreen extends StatefulWidget {
   final String businessId;
@@ -97,14 +98,14 @@ class _ReviewsScreenState extends State<ReviewsScreen> {
   Widget _buildBody(ReviewsState state) {
     // The bloc is app-wide, so ignore another shop's reviews.
     if (!_isCurrent(state)) {
-      return const Center(child: CircularProgressIndicator());
+      return const ReviewsLoadingWidget();
     }
 
     switch (state.status) {
       case ReviewsStatus.initial:
       case ReviewsStatus.loading:
       case ReviewsStatus.notFound:
-        return const Center(child: CircularProgressIndicator());
+        return const ReviewsLoadingWidget();
       case ReviewsStatus.failure:
         return _ReviewsMessage(message: state.message, onRetry: _load);
       case ReviewsStatus.success:

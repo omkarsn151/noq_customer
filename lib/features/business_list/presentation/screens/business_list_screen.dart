@@ -7,6 +7,7 @@ import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/business_list/bloc/business_list_bloc.dart';
 import 'package:noq/features/business_list/bloc/business_list_event.dart';
 import 'package:noq/features/business_list/bloc/business_list_state.dart';
+import 'package:noq/features/business_list/presentation/widgets/business_list_loading_widget.dart';
 import 'package:noq/features/favorites/bloc/favorite_bloc.dart';
 import 'package:noq/features/favorites/bloc/favorite_event.dart';
 import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
@@ -78,7 +79,7 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
             switch (state.status) {
               case BusinessListStatus.initial:
               case BusinessListStatus.loading:
-                return const Center(child: CircularProgressIndicator());
+                return const BusinessListLoadingWidget();
               case BusinessListStatus.failure:
                 return _BusinessListMessage(
                   message: state.message,

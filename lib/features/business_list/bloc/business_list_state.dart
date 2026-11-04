@@ -13,7 +13,9 @@ class BusinessListState extends Equatable {
   final bool isLoadingMore;
   final String message;
 
-  final String categoryId;
+  /// The filters the first page was fetched with, reused for later pages.
+  final String? categoryId;
+  final String? query;
 
   /// Position the first page was fetched with, reused for later pages so the
   /// ordering stays consistent. Null when location was unavailable.
@@ -26,7 +28,8 @@ class BusinessListState extends Equatable {
     this.meta = const PageMeta.empty(),
     this.isLoadingMore = false,
     this.message = '',
-    this.categoryId = '',
+    this.categoryId,
+    this.query,
     this.lat,
     this.lng,
   });
@@ -47,6 +50,7 @@ class BusinessListState extends Equatable {
       isLoadingMore: isLoadingMore ?? this.isLoadingMore,
       message: message ?? this.message,
       categoryId: categoryId,
+      query: query,
       lat: lat,
       lng: lng,
     );
@@ -63,6 +67,7 @@ class BusinessListState extends Equatable {
     isLoadingMore,
     message,
     categoryId,
+    query,
     lat,
     lng,
   ];

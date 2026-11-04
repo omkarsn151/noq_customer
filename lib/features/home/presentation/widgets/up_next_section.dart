@@ -149,11 +149,19 @@ class _UpNextCard extends StatelessWidget {
                                   width: 12.5.w,
                                   height: 12.5.w,
                                   color: AppColors.borderLight,
-                                  child: Icon(
-                                    Icons.storefront_outlined,
-                                    size: 18.sp,
-                                    color: AppColors.textSecondary,
-                                  ),
+                                  child: thumbnailUrl != null
+                                      ? Image.network(
+                                          thumbnailUrl,
+                                          fit: BoxFit.cover,
+                                          errorBuilder:
+                                              (context, error, stackTrace) =>
+                                                  const SizedBox.shrink(),
+                                        )
+                                      : Icon(
+                                          Icons.storefront_outlined,
+                                          size: 18.sp,
+                                          color: AppColors.textSecondary,
+                                        ),
                                 ),
                               ),
                             ),
@@ -209,7 +217,7 @@ class _UpNextCard extends StatelessWidget {
                         label: "I'm Here",
                         height: 5.5.h,
                         // No backend for check-in yet — only the shop starts a visit.
-                        onPressed: (){},
+                        onPressed: () {},
                       ),
                     ),
                   ],

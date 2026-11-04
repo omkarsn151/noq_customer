@@ -1,21 +1,21 @@
 import 'package:flutter/material.dart';
+import 'package:go_router/go_router.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/utils/app_colors.dart';
+import 'package:noq/features/search/data/quick_filter_model.dart';
 
-const _filters = [
-  'Haircuts',
-  'Auto Repair',
-  'Urgent Care',
-  'Clinic',
-  'Massage',
-  'Dentist',
-];
-
+/// Category chips. A chip is an exact category filter, not a text search, so
+/// tapping one opens that category's shops and never touches the search box.
 class QuickFiltersSection extends StatelessWidget {
-  const QuickFiltersSection({super.key});
+  final List<QuickFilterModel> filters;
+
+  const QuickFiltersSection({super.key, required this.filters});
 
   @override
   Widget build(BuildContext context) {
+    // No chips means the platform has no public shops: hide the whole row.
+    if (filters.isEmpty) return const SizedBox.shrink();
+
     return Padding(
       padding: EdgeInsets.symmetric(horizontal: 5.w),
       child: Column(
@@ -33,7 +33,14 @@ class QuickFiltersSection extends StatelessWidget {
             spacing: 2.5.w,
             runSpacing: 1.2.h,
             children: [
-              for (final filter in _filters) _FilterChip(label: filter),
+              for (final filter in filters)
+                _FilterChip(
+                  label: filter.label,
+                  onTap: () => context.push(
+                    '/categories/${filter.categoryId}/businesses',
+                    extra: filter.label,
+                  ),
+                ),
             ],
           ),
         ],
@@ -44,14 +51,15 @@ class QuickFiltersSection extends StatelessWidget {
 
 class _FilterChip extends StatelessWidget {
   final String label;
+  final VoidCallback onTap;
 
-  const _FilterChip({required this.label});
+  const _FilterChip({required this.label, required this.onTap});
 
   @override
   Widget build(BuildContext context) {
     return InkWell(
       borderRadius: BorderRadius.circular(20.sp),
-      onTap: () {},
+      onTap: onTap,
       child: Container(
         padding: EdgeInsets.symmetric(horizontal: 4.w, vertical: 1.h),
         decoration: BoxDecoration(

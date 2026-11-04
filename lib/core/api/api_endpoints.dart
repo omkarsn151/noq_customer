@@ -72,4 +72,11 @@ class ApiEndpoints {
 
   //====================Favorites====================
   static const String favorites = "v1/customer/favorites";
+
+  //====================Search====================
+  static const String searchQuickFilters = "v1/customer/search/quick-filters";
+
+  static const String search = "v1/customer/search";
+
+  static const String searchServices = "v1/customer/search/services";
 }

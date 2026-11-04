@@ -131,10 +131,7 @@ void main() {
       await remove(bloc, saved, 'shop-0');
       saved.insert(0, 'shop-0');
       bloc.add(
-        const FavoritesListItemChanged(
-          businessId: 'shop-0',
-          isFavorited: true,
-        ),
+        const FavoritesListItemChanged(businessId: 'shop-0', isFavorited: true),
       );
       await pumpEventQueue();
 

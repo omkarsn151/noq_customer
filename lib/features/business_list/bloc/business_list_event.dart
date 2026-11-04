@@ -7,15 +7,17 @@ abstract class BusinessListEvent extends Equatable {
   List<Object?> get props => [];
 }
 
-/// Load the first page of shops in [categoryId], replacing whatever list was
-/// shown before.
+/// Load the first page of shops in [categoryId] and/or whose name matches
+/// [query], replacing whatever list was shown before.
 class BusinessListRequested extends BusinessListEvent {
-  final String categoryId;
+  final String? categoryId;
+  final String? query;
 
-  const BusinessListRequested({required this.categoryId});
+  const BusinessListRequested({this.categoryId, this.query})
+    : assert(categoryId != null || query != null);
 
   @override
-  List<Object?> get props => [categoryId];
+  List<Object?> get props => [categoryId, query];
 }
 
 /// Append the next page once the list is scrolled near its end.

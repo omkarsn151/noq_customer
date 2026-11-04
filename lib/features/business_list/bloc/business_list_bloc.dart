@@ -36,19 +36,25 @@ class BusinessListBloc extends Bloc<BusinessListEvent, BusinessListState> {
     BusinessListRequested event,
     Emitter<BusinessListState> emit,
   ) async {
-    // Start from a clean state so another category's shops never flash up.
+    // Start from a clean state so another list's shops never flash up.
     emit(
       BusinessListState(
         status: BusinessListStatus.loading,
         categoryId: event.categoryId,
+        query: event.query,
       ),
     );
 
     try {
       // Null until Home has a position — the list is then best-rated first.
-      final position = await _locationService.getSavedLocation();
+      // A text search sends none, to match the search preview it continues
+      // (same order, and no distance on the cards).
+      final position = event.query == null
+          ? await _locationService.getSavedLocation()
+          : null;
       final page = await _repository.getBusinesses(
         categoryId: event.categoryId,
+        q: event.query,
         lat: position?.latitude,
         lng: position?.longitude,
       );
@@ -58,6 +64,7 @@ class BusinessListBloc extends Bloc<BusinessListEvent, BusinessListState> {
           businesses: page.items,
           meta: page.meta,
           categoryId: event.categoryId,
+          query: event.query,
           lat: position?.latitude,
           lng: position?.longitude,
         ),
@@ -87,6 +94,7 @@ class BusinessListBloc extends Bloc<BusinessListEvent, BusinessListState> {
     try {
       final page = await _repository.getBusinesses(
         categoryId: state.categoryId,
+        q: state.query,
         lat: state.lat,
         lng: state.lng,
         page: state.meta.page + 1,

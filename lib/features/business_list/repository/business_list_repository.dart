@@ -11,10 +11,12 @@ class BusinessListRepository {
   BusinessListRepository({DioClient? dioClient})
     : _dioClient = dioClient ?? DioClient();
 
-  /// Public shops, optionally only those in [categoryId]. With [lat] and [lng]
-  /// (sent only together) they come back nearest first; otherwise best rated.
+  /// Public shops, optionally only those in [categoryId] and/or whose name
+  /// matches [q]. With [lat] and [lng] (sent only together) they come back
+  /// nearest first; otherwise best rated.
   Future<PaginatedResponse<BusinessListModel>> getBusinesses({
     String? categoryId,
+    String? q,
     double? lat,
     double? lng,
     int page = 1,
@@ -24,6 +26,7 @@ class BusinessListRepository {
       ApiEndpoints.getBusinesses,
       queryParameters: {
         'category_id': ?categoryId,
+        'q': ?q,
         if (lat != null && lng != null) ...{'lat': lat, 'lng': lng},
         'page': page,
         'page_size': pageSize,

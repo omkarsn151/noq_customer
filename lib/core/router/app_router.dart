@@ -18,7 +18,16 @@ import 'package:noq/features/main_screen/main_screen.dart';
 import 'package:noq/features/privacy/privacy_policy_screen.dart';
 import 'package:noq/features/profile/presentation/screens/profile_screen.dart';
 import 'package:noq/features/reviews/presentation/screens/reviews_screen.dart';
+import 'package:noq/core/services/location_service.dart';
+import 'package:noq/core/services/recent_searches_service.dart';
+import 'package:noq/features/business_list/bloc/business_list_bloc.dart';
+import 'package:noq/features/business_list/repository/business_list_repository.dart';
+import 'package:noq/features/search/bloc/search_bloc.dart';
+import 'package:noq/features/search/bloc/search_event.dart';
+import 'package:noq/features/search/bloc/search_services_bloc.dart';
 import 'package:noq/features/search/presentation/screens/search_screen.dart';
+import 'package:noq/features/search/presentation/screens/search_services_screen.dart';
+import 'package:noq/features/search/repository/search_repository.dart';
 import 'package:noq/features/service_list/presentation/screens/service_list_screen.dart';
 import 'package:noq/features/service/presentation/screens/service_details_screen.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
@@ -80,7 +89,40 @@ class AppRouter {
 
       GoRoute(
         path: '/search',
-        builder: (context, state) => const SearchScreen(),
+        // Scoped to the route: each visit starts with an empty box.
+        builder: (context, state) => BlocProvider<SearchBloc>(
+          create: (_) =>
+              SearchBloc(SearchRepository(), RecentSearchesService())
+                ..add(const SearchStarted()),
+          child: const SearchScreen(),
+        ),
+      ),
+
+      // "See all shops" for a search. Its own BusinessListBloc, so the
+      // app-wide one (a category list further down the stack) is untouched.
+      GoRoute(
+        path: '/search/businesses',
+        builder: (context, state) {
+          final query = state.uri.queryParameters['q'] ?? '';
+          return BlocProvider<BusinessListBloc>(
+            create: (_) =>
+                BusinessListBloc(BusinessListRepository(), LocationService()),
+            child: BusinessListScreen(
+              query: query,
+              title: 'Shops for "$query"',
+            ),
+          );
+        },
+      ),
+
+      GoRoute(
+        path: '/search/services',
+        builder: (context, state) => BlocProvider<SearchServicesBloc>(
+          create: (_) => SearchServicesBloc(SearchRepository()),
+          child: SearchServicesScreen(
+            query: state.uri.queryParameters['q'] ?? '',
+          ),
+        ),
       ),
 
       GoRoute(
@@ -136,7 +178,7 @@ class AppRouter {
         path: '/categories/:categoryId/businesses',
         builder: (context, state) => BusinessListScreen(
           categoryId: state.pathParameters['categoryId']!,
-          categoryName: state.extra as String? ?? 'Businesses',
+          title: state.extra as String? ?? 'Businesses',
         ),
       ),
 

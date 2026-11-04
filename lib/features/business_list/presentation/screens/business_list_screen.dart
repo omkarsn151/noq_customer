@@ -12,15 +12,18 @@ import 'package:noq/features/favorites/bloc/favorite_event.dart';
 import 'package:noq/features/favorites/presentation/favorite_change_listener.dart';
 import 'package:noq/features/home/presentation/widgets/business_card_widget.dart';
 
+/// Shops in a category, or every shop matching a search ("See all shops").
 class BusinessListScreen extends StatefulWidget {
-  final String categoryId;
-  final String categoryName;
+  final String? categoryId;
+  final String? query;
+  final String title;
 
   const BusinessListScreen({
     super.key,
-    required this.categoryId,
-    required this.categoryName,
-  });
+    this.categoryId,
+    this.query,
+    required this.title,
+  }) : assert(categoryId != null || query != null);
 
   @override
   State<BusinessListScreen> createState() => _BusinessListScreenState();
@@ -38,7 +41,7 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
 
   void _load() {
     context.read<BusinessListBloc>().add(
-      BusinessListRequested(categoryId: widget.categoryId),
+      BusinessListRequested(categoryId: widget.categoryId, query: widget.query),
     );
   }
 
@@ -60,7 +63,7 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppAppBar(title: widget.categoryName),
+      appBar: AppAppBar(title: widget.title),
       body: FavoriteChangeListener(
         isRelevant: (id) => context
             .read<BusinessListBloc>()
@@ -84,7 +87,9 @@ class _BusinessListScreenState extends State<BusinessListScreen> {
               case BusinessListStatus.success:
                 if (state.businesses.isEmpty) {
                   return _BusinessListMessage(
-                    message: 'No businesses in this category yet',
+                    message: widget.query == null
+                        ? 'No businesses in this category yet'
+                        : 'No shops match "${widget.query}"',
                     onRetry: _load,
                   );
                 }

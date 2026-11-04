@@ -7,7 +7,10 @@ import 'package:noq/features/categories/data/category_model.dart';
 class CategoryGrid extends StatelessWidget {
   final List<CategoryModel> items;
 
-  const CategoryGrid({super.key, required this.items});
+  /// Called just before the category's shop list is opened.
+  final ValueChanged<CategoryModel>? onSelected;
+
+  const CategoryGrid({super.key, required this.items, this.onSelected});
 
   @override
   Widget build(BuildContext context) {
@@ -25,10 +28,10 @@ class CategoryGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final item = items[index];
         return GestureDetector(
-          onTap: () => context.push(
-            '/categories/${item.id}/businesses',
-            extra: item.name,
-          ),
+          onTap: () {
+            onSelected?.call(item);
+            context.push('/categories/${item.id}/businesses', extra: item.name);
+          },
           child: CategoryCard(item: item),
         );
       },

@@ -16,6 +16,7 @@ class AppButton extends StatelessWidget {
   final double? elevation;
   final double? height;
   final double? fontSize;
+  final Color? borderColor;
 
   const AppButton({
     super.key,
@@ -32,6 +33,7 @@ class AppButton extends StatelessWidget {
     this.elevation,
     this.height,
     this.fontSize,
+    this.borderColor,
   });
 
   @override
@@ -72,6 +74,9 @@ class AppButton extends StatelessWidget {
             foregroundColor: foregroundColor ?? AppColors.background,
             shape: RoundedRectangleBorder(
               borderRadius: BorderRadius.circular(borderRadius ?? 4.w),
+              side: borderColor != null
+                  ? BorderSide(color: borderColor!)
+                  : BorderSide.none,
             ),
             minimumSize: height != null ? Size(0, height!) : null,
             padding:

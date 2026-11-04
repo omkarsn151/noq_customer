@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_alert_dialog.dart';
 import 'package:noq/core/common/app_button.dart';
+import 'package:noq/core/common/app_snackbar.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/core/utils/date_time_utils.dart';
 import 'package:noq/features/slot/bloc/slot_bloc.dart';
@@ -244,15 +245,10 @@ class _TimeGrid extends StatelessWidget {
       itemBuilder: (context, index) {
         final slot = times[index];
         final isSelected = selectedIndexes.contains(index);
-        // A chip is tappable only if a full run can start here, or it is
-        // already in the selected run (tap to clear the whole run).
-        final canStart = canStartRunAt(
-          times,
-          index,
-          requiredSlots,
-          blockMinutes,
-        );
-        final isTappable = canStart || isSelected;
+        // Chips are painted by their own availability only. Whether a full
+        // run fits from here is checked on tap, so an open chip never looks
+        // blocked just because the visit can't *start* on it.
+        final isTappable = slot.isAvailable || isSelected;
 
         final Color background;
         final Color borderColor;
@@ -262,8 +258,7 @@ class _TimeGrid extends StatelessWidget {
           borderColor = AppColors.primary;
           labelColor = AppColors.background;
         } else if (!isTappable) {
-          // `full`, `past`, end-of-day and pre-lunch-gap chips all land here
-          // once the cart needs a run.
+          // `full` / `past` chips.
           background = AppColors.borderLight;
           borderColor = AppColors.borderLight;
           labelColor = AppColors.textSecondary;
@@ -273,14 +268,27 @@ class _TimeGrid extends StatelessWidget {
           labelColor = AppColors.primary;
         }
 
+        void onTap() {
+          final bloc = context.read<SlotBloc>();
+          if (isSelected) {
+            bloc.add(const SlotSelectionCleared());
+            return;
+          }
+          if (!canStartRunAt(times, index, requiredSlots, blockMinutes)) {
+            final minutes = state.model.summary.totalDurationMinutes;
+            AppSnackbar.warning(
+              context,
+              'This visit needs $minutes min ($requiredSlots back-to-back '
+              'slots). ${DateTimeUtils.formatSlotTime(slot.start)} doesn\'t '
+              'have enough free time after it - please pick another start time.',
+            );
+            return;
+          }
+          bloc.add(SlotRunSelected(slot.start));
+        }
+
         return GestureDetector(
-          onTap: isTappable
-              ? () => context.read<SlotBloc>().add(
-                  isSelected
-                      ? const SlotSelectionCleared()
-                      : SlotRunSelected(slot.start),
-                )
-              : null,
+          onTap: isTappable ? onTap : null,
           child: Container(
             decoration: BoxDecoration(
               color: background,
@@ -368,7 +376,7 @@ class _StaffCard extends StatelessWidget {
         child: Container(
           width: 28.w,
           decoration: BoxDecoration(
-            color: AppColors.pink,
+            color: AppColors.primaryLight,
             border: isSelected ? Border.all(color: AppColors.primary) : null,
             borderRadius: BorderRadius.circular(14.sp),
           ),

@@ -3,6 +3,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:sizer/sizer.dart';
 import 'package:noq/core/common/app_appbar.dart';
 import 'package:noq/core/common/app_pill_tab_bar.dart';
+import 'package:noq/core/utils/app_assets.dart';
 import 'package:noq/core/utils/app_colors.dart';
 import 'package:noq/features/bookings/bloc/bookings_bloc.dart';
 import 'package:noq/features/bookings/bloc/bookings_event.dart';
@@ -146,9 +147,9 @@ class _BookingsList extends StatelessWidget {
     }
 
     if (tabState.bookings.isEmpty) {
-      return _BookingsMessage(
-        message: 'No ${tab.label.toLowerCase()} bookings',
-        onRetry: () => _loadFirstPage(context),
+      return _BookingsEmpty(
+        tab: tab,
+        onRefresh: () => _loadFirstPage(context),
       );
     }
 
@@ -179,6 +180,60 @@ class _BookingsList extends StatelessWidget {
             return BookingsTile(booking: tabState.bookings[index]);
           },
         ),
+      ),
+    );
+  }
+}
+
+class _BookingsEmpty extends StatelessWidget {
+  final BookingTab tab;
+  final VoidCallback onRefresh;
+
+  const _BookingsEmpty({required this.tab, required this.onRefresh});
+
+  String get _image => switch (tab) {
+    BookingTab.upcoming => AppAssets.noUpcomingBookings,
+    BookingTab.past => AppAssets.noPastBookings,
+    BookingTab.cancelled => AppAssets.noCancelledBookings,
+  };
+
+  @override
+  Widget build(BuildContext context) {
+    // Kept scrollable so pull-to-refresh still works on an empty tab.
+    return RefreshIndicator(
+      color: AppColors.primary,
+      onRefresh: () async => onRefresh(),
+      child: ListView(
+        physics: const AlwaysScrollableScrollPhysics(),
+        padding: EdgeInsets.symmetric(horizontal: 8.w),
+        children: [
+          SizedBox(height: 10.h),
+          Image.asset(_image, height: 25.h, fit: BoxFit.contain),
+          SizedBox(height: 2.h),
+          Text(
+            'No ${tab.label.toLowerCase()} bookings',
+            textAlign: TextAlign.center,
+            style: Theme.of(
+              context,
+            ).textTheme.bodyMedium?.copyWith(color: AppColors.textSecondary),
+          ),
+          SizedBox(height: 1.5.h),
+          Center(
+            child: InkWell(
+              onTap: onRefresh,
+              borderRadius: BorderRadius.circular(4.w),
+              child: Container(
+                padding: EdgeInsets.symmetric(vertical: 1.25.h, horizontal: 8.w),
+                decoration: BoxDecoration(
+                  border: Border.all(color: AppColors.primary),
+                  borderRadius: BorderRadius.circular(4.w),
+                ),
+                child: Text('Reload', style: Theme.of(context).textTheme.labelLarge?.copyWith(
+                      color: AppColors.primary, fontWeight: FontWeight.w600)),
+              ),
+            ),
+          ),
+        ],
       ),
     );
   }
